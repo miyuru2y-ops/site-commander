@@ -171,6 +171,7 @@ class SC_Tools_Dev {
 				'dry_run' => $t::p( 'boolean', 'Default true.' ),
 			),
 			'required'    => array( 'search', 'replace' ),
+				'allow_empty' => array( 'replace' ),
 			'write'       => true,
 			'destructive' => true,
 			'requires'    => 'allow_database',

@@ -205,6 +205,7 @@ class SC_Tools_Content {
 					'dry_run'    => $t::p( 'boolean', 'Default true: only report matches.' ),
 				),
 				'required'    => array( 'search', 'replace' ),
+				'allow_empty' => array( 'replace' ),
 				'write'       => true,
 				'callback'    => array( __CLASS__, 'search_replace' ),
 			)

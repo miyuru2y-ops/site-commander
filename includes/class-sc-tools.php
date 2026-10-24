@@ -135,7 +135,8 @@ class SC_Tools {
 			return array( 'ok' => false, 'error' => $blocked );
 		}
 		foreach ( $tool['required'] as $req ) {
-			if ( ! array_key_exists( $req, $args ) || '' === $args[ $req ] || null === $args[ $req ] ) {
+			$empty_ok = in_array( $req, isset( $tool['allow_empty'] ) ? (array) $tool['allow_empty'] : array(), true );
+			if ( ! array_key_exists( $req, $args ) || ( '' === $args[ $req ] && ! $empty_ok ) || null === $args[ $req ] ) {
 				return array( 'ok' => false, 'error' => "Missing required argument: $req" );
 			}
 		}

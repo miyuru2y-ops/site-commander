@@ -44,6 +44,17 @@ class SC_Tools_Design {
 			'callback'    => array( __CLASS__, 'install_theme' ),
 		) );
 
+		$t::add( 'delete_theme', array(
+			'group'       => 'design',
+			'description' => 'Permanently delete an installed theme that is not active. The active theme, and the parent of the active child theme, cannot be deleted.',
+			'properties'  => array( 'stylesheet' => $t::p( 'string', 'Theme folder name from list_themes.' ) ),
+			'required'    => array( 'stylesheet' ),
+			'write'       => true,
+			'destructive' => true,
+			'requires'    => 'allow_extensions',
+			'callback'    => array( __CLASS__, 'delete_theme' ),
+		) );
+
 		$t::add( 'create_child_theme', array(
 			'group'       => 'design',
 			'description' => 'Create a child theme of the active (or given) theme so code edits survive theme updates. Optionally activate it (theme settings are copied).',
@@ -92,8 +103,10 @@ class SC_Tools_Design {
 
 		$t::add( 'set_site_identity', array(
 			'group'       => 'design',
-			'description' => 'Set the site logo and/or site icon (favicon) from a media ID or image URL.',
+			'description' => 'Set the site title, tagline, logo and/or site icon (favicon). Logo and icon take a media ID or image URL.',
 			'properties'  => array(
+				'title'   => $t::p( 'string', 'Site title.' ),
+				'tagline' => $t::p( 'string', 'Site tagline.' ),
 				'logo' => array( 'type' => array( 'integer', 'string' ), 'description' => 'Attachment ID or image URL. 0 removes.' ),
 				'icon' => array( 'type' => array( 'integer', 'string' ), 'description' => 'Square image (512px+): attachment ID or URL. 0 removes.' ),
 			),
@@ -372,6 +385,30 @@ class SC_Tools_Design {
 		return array( 'message' => 'Installed theme ' . ( $theme ? $theme->get( 'Name' ) : '' ) . '. Use activate_theme to switch.', 'stylesheet' => $theme ? $theme->get_stylesheet() : null );
 	}
 
+	public static function delete_theme( $a ) {
+		self::upgrader_includes();
+		require_once ABSPATH . 'wp-admin/includes/theme.php';
+		$slug  = (string) $a['stylesheet'];
+		$theme = wp_get_theme( $slug );
+		if ( ! $theme->exists() ) {
+			SC_Tools::fail( "Theme '$slug' not found." );
+		}
+		if ( get_stylesheet() === $slug ) {
+			SC_Tools::fail( "'$slug' is the active theme. Activate another theme first." );
+		}
+		if ( get_template() === $slug ) {
+			SC_Tools::fail( "'$slug' is the parent of the active child theme and cannot be deleted." );
+		}
+		$res = delete_theme( $slug );
+		if ( is_wp_error( $res ) ) {
+			return $res;
+		}
+		if ( ! $res ) {
+			SC_Tools::fail( "Could not delete theme '$slug'." );
+		}
+		return array( 'message' => "Deleted theme $slug." );
+	}
+
 	public static function create_child_theme( $a ) {
 		$parent_slug = SC_Tools::str( $a, 'parent', get_template() );
 		$parent      = wp_get_theme( $parent_slug );
@@ -466,6 +503,14 @@ class SC_Tools_Design {
 
 	public static function set_site_identity( $a ) {
 		$done = array();
+		if ( isset( $a['title'] ) ) {
+			update_option( 'blogname', sanitize_text_field( (string) $a['title'] ) );
+			$done[] = 'title';
+		}
+		if ( isset( $a['tagline'] ) ) {
+			update_option( 'blogdescription', sanitize_text_field( (string) $a['tagline'] ) );
+			$done[] = 'tagline';
+		}
 		if ( array_key_exists( 'logo', $a ) ) {
 			$id = empty( $a['logo'] ) ? 0 : self::image_id( $a['logo'] );
 			set_theme_mod( 'custom_logo', $id );

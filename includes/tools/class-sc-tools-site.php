@@ -115,6 +115,19 @@ class SC_Tools_Site {
 			'callback'    => array( __CLASS__, 'toggle_plugin' ),
 		) );
 
+		$t::add( 'delete_plugin', array(
+			'group'       => 'site',
+			'description' => 'Permanently delete an installed plugin that is NOT active (files and its uninstall routine are removed). Active plugins must be deactivated first with toggle_plugin.',
+			'properties'  => array(
+				'plugin' => $t::p( 'string', 'Plugin file from list_plugins, e.g. "hello.php" or "akismet/akismet.php".' ),
+			),
+			'required'    => array( 'plugin' ),
+			'write'       => true,
+			'destructive' => true,
+			'requires'    => 'allow_extensions',
+			'callback'    => array( __CLASS__, 'delete_plugin' ),
+		) );
+
 		$t::add( 'fetch_page', array(
 			'group'       => 'site',
 			'description' => 'Load a page of this site as visitors see it and report title, meta description, canonical, robots, headings, links, images, schema and load time. mode "html" returns the raw HTML (trimmed).',
@@ -314,6 +327,30 @@ class SC_Tools_Site {
 		}
 		deactivate_plugins( $file );
 		return array( 'message' => "Deactivated $file." );
+	}
+
+	public static function delete_plugin( $a ) {
+		require_once ABSPATH . 'wp-admin/includes/plugin.php';
+		require_once ABSPATH . 'wp-admin/includes/file.php';
+		$file = (string) $a['plugin'];
+		if ( plugin_basename( SC_FILE ) === $file ) {
+			SC_Tools::fail( 'Site Commander cannot delete itself.' );
+		}
+		if ( ! array_key_exists( $file, get_plugins() ) ) {
+			SC_Tools::fail( "Plugin '$file' is not installed." );
+		}
+		if ( is_plugin_active( $file ) || is_plugin_active_for_network( $file ) ) {
+			SC_Tools::fail( "Plugin '$file' is active. Deactivate it first with toggle_plugin." );
+		}
+		SC_Tools_Design::upgrader_includes();
+		$res = delete_plugins( array( $file ) );
+		if ( is_wp_error( $res ) ) {
+			return $res;
+		}
+		if ( true !== $res ) {
+			SC_Tools::fail( "Could not delete $file (file permissions)." );
+		}
+		return array( 'message' => "Deleted plugin $file." );
 	}
 
 	public static function fetch_page( $a ) {
