@@ -1,0 +1,44 @@
+# Push a version tag (e.g. `git tag v1.1.0 && git push --tags`) after bumping the
+# "Version:" header and SC_VERSION in site-commander.php. This builds
+# site-commander.zip and publishes a GitHub release. Every site with this repo
+# set under Site Commander → Automatic updates picks it up.
+
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check version matches tag
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          HEADER=$(grep -m1 -E '^\s*\*\s*Version:' site-commander.php | awk '{print $NF}')
+          CONST=$(grep -m1 "define( 'SC_VERSION'" site-commander.php | sed -E "s/.*'([0-9.]+)'.*/\1/")
+          echo "tag=$TAG header=$HEADER constant=$CONST"
+          if [ "$TAG" != "$HEADER" ] || [ "$TAG" != "$CONST" ]; then
+            echo "::error::Tag v$TAG does not match plugin header ($HEADER) / SC_VERSION ($CONST)"; exit 1
+          fi
+
+      - name: Lint PHP
+        run: find . -name '*.php' -not -path './.git/*' -print0 | xargs -0 -n1 php -l
+
+      - name: Build zip
+        run: |
+          mkdir -p build/site-commander
+          rsync -a --exclude '.git' --exclude '.github' --exclude 'build' --exclude '.gitignore' --exclude 'README.md' ./ build/site-commander/
+          cd build && zip -rq site-commander.zip site-commander
+
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: build/site-commander.zip
+          generate_release_notes: true
