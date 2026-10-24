@@ -44,7 +44,19 @@ if ( ! function_exists( 'sc_fs' ) ) {
 		return $sc_fs;
 	}
 
-	sc_fs();
+	/**
+	 * Removes Site Commander's settings when the plugin is deleted.
+	 * SEO titles/descriptions saved on posts are kept, because they are site content.
+	 * The Free-plan creation counter (sc_created_counts) is kept so a reinstall does not reset it.
+	 */
+	function sc_fs_uninstall_cleanup() {
+		foreach ( array( 'sc_settings', 'sc_keys', 'sc_key_hash', 'sc_key_hint', 'sc_activity_log', 'sc_404_log', 'sc_redirects', 'sc_robots_extra', 'sc_home_seo', 'sc_snippets', 'sc_maintenance_message' ) as $opt ) {
+			delete_option( $opt );
+		}
+		delete_site_transient( 'sc_update_release' );
+	}
+
+	sc_fs()->add_action( 'after_uninstall', 'sc_fs_uninstall_cleanup' );
 	do_action( 'sc_fs_loaded' );
 }
 
