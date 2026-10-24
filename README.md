@@ -60,13 +60,7 @@ Requires WordPress 6.2+ and PHP 7.4+.
 
 The update source is built in (`SC_UPDATE_REPO` = `miyuru2y-ops/site-commander`), so every install updates itself with no setup. Only plugin code comes from GitHub; site data and keys never go there.
 
-To ship a new version: bump `Version:` and `SC_VERSION` in `site-commander.php`, commit, then
-
-```bash
-git tag v1.2.0 && git push origin main --tags
-```
-
-`.github/workflows/release.yml` lints, builds `site-commander.zip` and publishes the release. Sites pick it up within ~6 hours, or immediately via **Check for updates now** or the `self_update` tool. Auto-install is on by default and can be switched off per site.
+To ship a new version: bump `Version:` and `SC_VERSION` in `site-commander.php` and push to `main`. `.github/workflows/release.yml` lints, builds `site-commander.zip`, creates the tag and publishes the release automatically. Sites pick it up within ~6 hours, or immediately via **Check for updates now** or the `self_update` tool. Auto-install is on by default and can be switched off per site.
 
 Optional: a site can point at a fork under *Plugin updates → Advanced*, or switch self-updates off with `define( 'SC_DISABLE_SELF_UPDATE', true );` in wp-config.php.
 
