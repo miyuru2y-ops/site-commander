@@ -32,7 +32,7 @@ class SC_Plugin {
 			'log_404'                => 1,
 			'maintenance_mode'       => 0,
 			// Self-update from GitHub releases.
-			'update_repo'            => '', // owner/repo.
+			'update_repo'            => '', // Optional override (owner/repo); empty = built-in SC_UPDATE_REPO.
 			'update_token'           => '', // Only for private repos.
 			'auto_update_self'       => 1,
 		);

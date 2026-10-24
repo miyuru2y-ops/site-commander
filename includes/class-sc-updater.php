@@ -27,8 +27,19 @@ class SC_Updater {
 		add_action( 'sc_register_tools', array( __CLASS__, 'register_tools' ) );
 	}
 
-	private static function repo() {
+	/**
+	 * The repository updates come from: the built-in official repo, unless a site
+	 * sets its own (e.g. a fork) in settings. Define SC_DISABLE_SELF_UPDATE in
+	 * wp-config.php to switch self-updates off entirely.
+	 */
+	public static function repo() {
+		if ( defined( 'SC_DISABLE_SELF_UPDATE' ) && SC_DISABLE_SELF_UPDATE ) {
+			return '';
+		}
 		$repo = trim( (string) SC_Plugin::setting( 'update_repo' ) );
+		if ( '' === $repo ) {
+			$repo = SC_UPDATE_REPO;
+		}
 		$repo = preg_replace( '#^https?://github\.com/#i', '', $repo );
 		$repo = trim( preg_replace( '#\.git$#', '', $repo ), '/' );
 		return preg_match( '#^[\w.-]+/[\w.-]+$#', $repo ) ? $repo : '';
@@ -180,7 +191,7 @@ class SC_Updater {
 		delete_site_transient( self::CACHE );
 		$rel = self::latest( true );
 		if ( ! $rel ) {
-			return array( 'ok' => false, 'message' => 'No GitHub repository is set in Site Commander settings.' );
+			return array( 'ok' => false, 'message' => 'Self-updates are switched off on this site (SC_DISABLE_SELF_UPDATE).' );
 		}
 		if ( ! empty( $rel['error'] ) ) {
 			return array( 'ok' => false, 'message' => 'Could not check GitHub: ' . $rel['error'] );
@@ -217,7 +228,7 @@ class SC_Updater {
 				'callback'    => function ( $a ) {
 					if ( SC_Tools::bool( $a, 'check_only' ) ) {
 						$rel = SC_Updater::latest( true );
-						return array( 'installed' => SC_VERSION, 'latest' => $rel ? $rel : 'no update repository set' );
+						return array( 'installed' => SC_VERSION, 'latest' => $rel ? $rel : 'self-updates switched off' );
 					}
 					$r = SC_Updater::update_now();
 					if ( ! $r['ok'] ) {

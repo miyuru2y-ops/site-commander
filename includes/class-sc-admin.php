@@ -360,34 +360,34 @@ class SC_Admin {
 			</div>
 
 			<div class="sc-card" id="updates">
-				<h2>3. Automatic updates from GitHub</h2>
-				<p class="sc-sub">Point this at the GitHub repository that holds Site Commander. When you publish a new release (tag <code>v1.2.0</code> etc.), every site sees the update and installs it automatically if enabled.</p>
-				<?php self::form_open( 'updates' ); ?>
-					<table class="form-table" role="presentation">
-						<tr><th><label for="sc_repo">GitHub repository</label></th>
-							<td><input id="sc_repo" name="update_repo" type="text" class="regular-text" placeholder="owner/site-commander" value="<?php echo esc_attr( $s['update_repo'] ); ?>"></td></tr>
-						<tr><th><label for="sc_token">Access token</label></th>
-							<td><input id="sc_token" name="update_token" type="password" class="regular-text" autocomplete="new-password" placeholder="<?php echo $s['update_token'] ? 'saved — leave empty to keep' : 'only needed for private repositories'; ?>">
-							<?php if ( $s['update_token'] ) : ?><label><input type="checkbox" name="clear_token" value="1"> remove saved token</label><?php endif; ?>
-							<p class="description">Fine-grained token with read-only "Contents" access to this one repository.</p></td></tr>
-						<tr><th>Auto-install</th>
-							<td><label><input type="checkbox" name="auto_update_self" value="1" <?php checked( $s['auto_update_self'] ); ?>> Install new releases automatically</label></td></tr>
-					</table>
-					<?php submit_button( 'Save update settings', 'secondary' ); ?>
-				</form>
-				<?php
-				$rel = $s['update_repo'] ? SC_Updater::latest() : null;
-				if ( $rel ) {
-					if ( ! empty( $rel['error'] ) ) {
-						echo '<p><strong>GitHub check failed:</strong> ' . esc_html( $rel['error'] ) . '</p>';
-					} else {
+				<h2>3. Plugin updates</h2>
+				<?php $repo = SC_Updater::repo(); ?>
+				<?php if ( ! $repo ) : ?>
+					<p class="sc-sub">Self-updates are switched off on this site (<code>SC_DISABLE_SELF_UPDATE</code> in wp-config.php).</p>
+				<?php else : ?>
+					<p class="sc-sub">Site Commander updates itself from <a href="<?php echo esc_url( 'https://github.com/' . $repo . '/releases' ); ?>" target="_blank" rel="noopener">github.com/<?php echo esc_html( $repo ); ?></a> — nothing to set up. Only the plugin code is downloaded from GitHub; your site's content and keys never go there.</p>
+					<?php
+					$rel = SC_Updater::latest();
+					if ( $rel && ! empty( $rel['error'] ) ) {
+						echo '<p><strong>Last check failed:</strong> ' . esc_html( $rel['error'] ) . '</p>';
+					} elseif ( $rel && ! empty( $rel['version'] ) ) {
 						$newer = version_compare( $rel['version'], SC_VERSION, '>' );
 						echo '<p>Installed <strong>' . esc_html( SC_VERSION ) . '</strong> · latest release <strong>' . esc_html( $rel['version'] ) . '</strong> ' . ( $newer ? '— update available' : '— up to date' ) . '</p>';
 					}
-					self::form_open( 'update_now' );
-					echo '<button class="button">Check GitHub and update now</button></form>';
-				}
-				?>
+					?>
+					<div class="sc-row">
+						<?php self::form_open( 'update_now' ); ?><button class="button">Check for updates now</button></form>
+					</div>
+					<?php self::form_open( 'updates' ); ?>
+						<p><label><input type="checkbox" name="auto_update_self" value="1" <?php checked( $s['auto_update_self'] ); ?>> Install new versions automatically</label></p>
+						<details class="sc-client"><summary>Advanced: update from a different repository (fork)</summary>
+							<p><label>GitHub repository<br><input name="update_repo" type="text" class="regular-text" placeholder="<?php echo esc_attr( SC_UPDATE_REPO ); ?> (default)" value="<?php echo esc_attr( $s['update_repo'] ); ?>"></label></p>
+							<p><label>Access token (private repos only)<br><input name="update_token" type="password" class="regular-text" autocomplete="new-password" placeholder="<?php echo $s['update_token'] ? 'saved — leave empty to keep' : 'not needed for public repos'; ?>"></label>
+							<?php if ( $s['update_token'] ) : ?><br><label><input type="checkbox" name="clear_token" value="1"> remove saved token</label><?php endif; ?></p>
+						</details>
+						<?php submit_button( 'Save', 'secondary', 'submit', false ); ?>
+					</form>
+				<?php endif; ?>
 			</div>
 
 			<div class="sc-card" id="activity">

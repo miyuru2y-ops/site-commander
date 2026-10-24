@@ -58,13 +58,17 @@ Requires WordPress 6.2+ and PHP 7.4+.
 
 ## Automatic updates (push a release → all sites update)
 
-1. Put this folder in a GitHub repo (the plugin folder is the repo root).
-2. On each site: **Site Commander → Automatic updates** → enter `owner/repo` (and a read-only token for private repos), tick *Install new releases automatically*.
-3. To ship: bump `Version:` and `SC_VERSION` in `site-commander.php`, commit, then
-   ```bash
-   git tag v1.1.0 && git push --tags
-   ```
-   `.github/workflows/release.yml` lints, builds `site-commander.zip` and publishes the release. Sites see it within ~6 hours (or instantly via "Check GitHub and update now", or the `self_update` tool).
+The update source is built in (`SC_UPDATE_REPO` = `miyuru2y-ops/site-commander`), so every install updates itself with no setup. Only plugin code comes from GitHub; site data and keys never go there.
+
+To ship a new version: bump `Version:` and `SC_VERSION` in `site-commander.php`, commit, then
+
+```bash
+git tag v1.2.0 && git push origin main --tags
+```
+
+`.github/workflows/release.yml` lints, builds `site-commander.zip` and publishes the release. Sites pick it up within ~6 hours, or immediately via **Check for updates now** or the `self_update` tool. Auto-install is on by default and can be switched off per site.
+
+Optional: a site can point at a fork under *Plugin updates → Advanced*, or switch self-updates off with `define( 'SC_DISABLE_SELF_UPDATE', true );` in wp-config.php.
 
 ## Extending
 
