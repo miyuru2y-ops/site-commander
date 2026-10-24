@@ -62,8 +62,6 @@ Licensing and updates run through [Freemius](https://freemius.com) (product 4273
 
 To ship a new version: bump `Version:` and `SC_VERSION` in `site-commander.php` and push to `main`. `.github/workflows/release.yml` lints, builds `site-commander.zip`, tags and publishes it. Upload that zip to Freemius (Deployment) so customers receive it.
 
-Optional: a site can point at a fork under *Plugin updates → Advanced*, or switch self-updates off with `define( 'SC_DISABLE_SELF_UPDATE', true );` in wp-config.php.
-
 ## Extending
 
 Add your own tools; they appear in MCP, REST and OpenAPI automatically:
