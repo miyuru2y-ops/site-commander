@@ -31,10 +31,6 @@ class SC_Plugin {
 			'seo_output'             => 'auto', // auto | on | off.
 			'log_404'                => 1,
 			'maintenance_mode'       => 0,
-			// Self-update from GitHub releases.
-			'update_repo'            => '', // Optional override (owner/repo); empty = built-in SC_UPDATE_REPO.
-			'update_token'           => '', // Only for private repos.
-			'auto_update_self'       => 1,
 		);
 	}
 
@@ -57,7 +53,6 @@ class SC_Plugin {
 	public static function init() {
 		add_action( 'rest_api_init', array( 'SC_MCP_Server', 'register_routes' ) );
 		SC_SEO_Frontend::init();
-		SC_Updater::init();
 		if ( is_admin() ) {
 			SC_Admin::init();
 		}

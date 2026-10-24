@@ -24,6 +24,9 @@ class SC_Tools {
 	 * @param array    $def      group, description, properties, required, write, requires, callback.
 	 */
 	public static function add( $name, array $def ) {
+		if ( class_exists( 'SC_License' ) && SC_License::is_pro_tool( $name ) && isset( $def['description'] ) ) {
+			$def['description'] = '[Pro] ' . $def['description'];
+		}
 		self::$tools[ $name ] = wp_parse_args(
 			$def,
 			array(
@@ -132,6 +135,10 @@ class SC_Tools {
 			if ( $tool['write'] ) {
 				SC_Log::add( $name, $args, false, 'Refused: ' . $blocked );
 			}
+			return array( 'ok' => false, 'error' => $blocked );
+		}
+		$blocked = SC_License::tool_block( $name );
+		if ( $blocked ) {
 			return array( 'ok' => false, 'error' => $blocked );
 		}
 		foreach ( $tool['required'] as $req ) {

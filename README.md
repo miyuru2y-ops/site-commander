@@ -58,9 +58,9 @@ Requires WordPress 6.2+ and PHP 7.4+.
 
 ## Automatic updates (push a release → all sites update)
 
-The update source is built in (`SC_UPDATE_REPO` = `miyuru2y-ops/site-commander`), so every install updates itself with no setup. Only plugin code comes from GitHub; site data and keys never go there.
+Licensing and updates run through [Freemius](https://freemius.com) (product 42738). Free plan: 1 AI connection, 10 posts and 2 pages created through the plugin, core tools. Pro: everything, with a 7-day trial.
 
-To ship a new version: bump `Version:` and `SC_VERSION` in `site-commander.php` and push to `main`. `.github/workflows/release.yml` lints, builds `site-commander.zip`, creates the tag and publishes the release automatically. Sites pick it up within ~6 hours, or immediately via **Check for updates now** or the `self_update` tool. Auto-install is on by default and can be switched off per site.
+To ship a new version: bump `Version:` and `SC_VERSION` in `site-commander.php` and push to `main`. `.github/workflows/release.yml` lints, builds `site-commander.zip`, tags and publishes it. Upload that zip to Freemius (Deployment) so customers receive it.
 
 Optional: a site can point at a fork under *Plugin updates → Advanced*, or switch self-updates off with `define( 'SC_DISABLE_SELF_UPDATE', true );` in wp-config.php.
 

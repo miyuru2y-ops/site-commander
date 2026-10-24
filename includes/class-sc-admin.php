@@ -56,6 +56,9 @@ class SC_Admin {
 
 		switch ( $do ) {
 			case 'generate':
+				if ( ! SC_License::can_add_key() ) {
+					self::redirect( 'The Free plan includes 1 AI connection. ' . SC_License::upgrade_note(), 'error' );
+				}
 				$name   = isset( $_POST['key_name'] ) ? sanitize_text_field( wp_unslash( $_POST['key_name'] ) ) : '';
 				$groups = isset( $_POST['key_groups'] ) ? array_map( 'sanitize_key', (array) wp_unslash( $_POST['key_groups'] ) ) : array();
 				list( $key, $rec ) = SC_Auth::create_key( $name, $groups, ! empty( $_POST['key_read_only'] ) );
@@ -96,27 +99,6 @@ class SC_Admin {
 				}
 				SC_Plugin::update_settings( $new );
 				self::redirect( 'Settings saved.' );
-				break;
-
-			case 'updates':
-				$new = array(
-					'update_repo'      => isset( $_POST['update_repo'] ) ? sanitize_text_field( wp_unslash( $_POST['update_repo'] ) ) : '',
-					'auto_update_self' => empty( $_POST['auto_update_self'] ) ? 0 : 1,
-				);
-				if ( ! empty( $_POST['clear_token'] ) ) {
-					$new['update_token'] = '';
-				} elseif ( ! empty( $_POST['update_token'] ) ) {
-					$new['update_token'] = sanitize_text_field( wp_unslash( $_POST['update_token'] ) );
-				}
-				SC_Plugin::update_settings( $new );
-				delete_site_transient( SC_Updater::CACHE );
-				delete_site_transient( 'update_plugins' );
-				self::redirect( 'Update settings saved.' );
-				break;
-
-			case 'update_now':
-				$r = SC_Updater::update_now();
-				self::redirect( $r['message'], $r['ok'] ? 'success' : 'error' );
 				break;
 
 			case 'clear_log':
@@ -359,35 +341,23 @@ class SC_Admin {
 				</form>
 			</div>
 
-			<div class="sc-card" id="updates">
-				<h2>3. Plugin updates</h2>
-				<?php $repo = SC_Updater::repo(); ?>
-				<?php if ( ! $repo ) : ?>
-					<p class="sc-sub">Self-updates are switched off on this site (<code>SC_DISABLE_SELF_UPDATE</code> in wp-config.php).</p>
+			<div class="sc-card" id="plan">
+				<h2>3. Your plan</h2>
+				<?php $counts = SC_License::counts(); ?>
+				<?php if ( SC_License::is_pro() ) : ?>
+					<?php $left = SC_License::trial_days_left(); ?>
+					<p><strong>Pro</strong><?php echo $left ? ' &middot; free trial, ' . (int) $left . ' day' . ( 1 === $left ? '' : 's' ) . ' left' : ''; ?>. All tools are unlocked.</p>
 				<?php else : ?>
-					<p class="sc-sub">Site Commander updates itself from <a href="<?php echo esc_url( 'https://github.com/' . $repo . '/releases' ); ?>" target="_blank" rel="noopener">github.com/<?php echo esc_html( $repo ); ?></a> — nothing to set up. Only the plugin code is downloaded from GitHub; your site's content and keys never go there.</p>
-					<?php
-					$rel = SC_Updater::latest();
-					if ( $rel && ! empty( $rel['error'] ) ) {
-						echo '<p><strong>Last check failed:</strong> ' . esc_html( $rel['error'] ) . '</p>';
-					} elseif ( $rel && ! empty( $rel['version'] ) ) {
-						$newer = version_compare( $rel['version'], SC_VERSION, '>' );
-						echo '<p>Installed <strong>' . esc_html( SC_VERSION ) . '</strong> · latest release <strong>' . esc_html( $rel['version'] ) . '</strong> ' . ( $newer ? '— update available' : '— up to date' ) . '</p>';
-					}
-					?>
-					<div class="sc-row">
-						<?php self::form_open( 'update_now' ); ?><button class="button">Check for updates now</button></form>
-					</div>
-					<?php self::form_open( 'updates' ); ?>
-						<p><label><input type="checkbox" name="auto_update_self" value="1" <?php checked( $s['auto_update_self'] ); ?>> Install new versions automatically</label></p>
-						<details class="sc-client"><summary>Advanced: update from a different repository (fork)</summary>
-							<p><label>GitHub repository<br><input name="update_repo" type="text" class="regular-text" placeholder="<?php echo esc_attr( SC_UPDATE_REPO ); ?> (default)" value="<?php echo esc_attr( $s['update_repo'] ); ?>"></label></p>
-							<p><label>Access token (private repos only)<br><input name="update_token" type="password" class="regular-text" autocomplete="new-password" placeholder="<?php echo $s['update_token'] ? 'saved — leave empty to keep' : 'not needed for public repos'; ?>"></label>
-							<?php if ( $s['update_token'] ) : ?><br><label><input type="checkbox" name="clear_token" value="1"> remove saved token</label><?php endif; ?></p>
-						</details>
-						<?php submit_button( 'Save', 'secondary', 'submit', false ); ?>
-					</form>
+					<p><strong>Free</strong> &middot; <?php echo (int) $counts['post']; ?>/<?php echo (int) SC_License::FREE_POSTS; ?> posts and <?php echo (int) $counts['page']; ?>/<?php echo (int) SC_License::FREE_PAGES; ?> pages created &middot; 1 AI connection. Pro tools (theme and file editing, plugin management, full SEO suite, activity log and more) are locked.</p>
 				<?php endif; ?>
+				<p>
+					<?php if ( ! SC_License::is_pro() && function_exists( 'sc_fs' ) && sc_fs() && ! sc_fs()->is_trial_utilized() ) : ?>
+						<a class="button button-primary" href="<?php echo esc_url( sc_fs()->get_trial_url() ); ?>">Start 7-day Pro trial</a>
+					<?php endif; ?>
+					<?php if ( ! SC_License::is_pro() ) : ?>
+						<a class="button" href="<?php echo esc_url( SC_License::upgrade_url() ); ?>">Upgrade to Pro</a>
+					<?php endif; ?>
+				</p>
 			</div>
 
 			<div class="sc-card" id="activity">
