@@ -196,7 +196,7 @@ class SC_Tools_Content {
 			'search_replace_content',
 			array(
 				'group'       => 'content',
-				'description' => 'Find and replace text across post/page content and titles (e.g. fix old links, rename a brand). Runs as a dry run unless dry_run=false.',
+				'description' => 'Find and replace text across post/page content and titles (e.g. fix old links, rename a brand). Does not reach Elementor page data: use elementor_find_replace for that. Runs as a dry run unless dry_run=false.',
 				'properties'  => array(
 					'search'     => $t::p( 'string', 'Text to find (case-sensitive).' ),
 					'replace'    => $t::p( 'string', 'Replacement.' ),
@@ -315,6 +315,7 @@ class SC_Tools_Content {
 			'author'   => (int) $p->post_author,
 			'excerpt'  => SC_Tools::plain_excerpt( $p->post_excerpt ? $p->post_excerpt : $p->post_content, 25 ),
 			'featured' => $thumb ? (int) $thumb : null,
+			'builder'  => SC_Tools_Builders::detect( $p ),
 		);
 	}
 
@@ -619,7 +620,14 @@ class SC_Tools_Content {
 			}
 		}
 		self::apply_extras( $p->ID, $a );
-		return self::result( $p->ID, "Updated #{$p->ID}." );
+		$msg     = "Updated #{$p->ID}.";
+		$builder = SC_Tools_Builders::detect( $p );
+		if ( 'elementor' === $builder && isset( $a['content'] ) ) {
+			$msg .= ' Warning: this page is built with Elementor, which ignores post content. Use get_elementor_data and update_elementor_element to change what visitors see.';
+		} elseif ( in_array( $builder, array( 'divi', 'wpbakery' ), true ) && isset( $a['content'] ) ) {
+			$msg .= " Note: this page uses the $builder builder (shortcodes). Keep its existing shortcode structure when editing content.";
+		}
+		return self::result( $p->ID, $msg );
 	}
 
 	public static function schedule_content( $a ) {
