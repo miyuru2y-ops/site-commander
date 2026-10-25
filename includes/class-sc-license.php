@@ -72,7 +72,7 @@ class SC_License {
 		return array(
 			// Content.
 			'bulk_update_status', 'search_replace_content', 'restore_revision',
-			'get_elementor_data', 'update_elementor_element', 'elementor_find_replace', 'elementor_clear_cache',
+			'get_shortcode_layout', 'update_shortcode_node', 'divi_clear_cache', 'get_elementor_data', 'update_elementor_element', 'elementor_find_replace', 'elementor_clear_cache',
 			// Design.
 			'install_theme', 'delete_theme', 'activate_theme', 'create_child_theme',
 			'write_theme_file', 'restore_file_backup', 'update_template', 'reset_template',

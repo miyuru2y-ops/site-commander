@@ -56,6 +56,7 @@ class SC_Tools {
 			SC_Tools_Dev::register();
 			SC_Tools_Commerce::register();
 			SC_Tools_Builders::register();
+			SC_Tools_Shortcode_Builders::register();
 			/**
 			 * Let developers add their own tools:
 			 * add_action( 'sc_register_tools', function () { SC_Tools::add( 'my_tool', [...] ); } );

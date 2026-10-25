@@ -3,7 +3,7 @@
  * Plugin Name:       Site Commander – Universal AI Connector
  * Plugin URI:        https://github.com/miyuru2y-ops/site-commander
  * Description:       Let any AI (Claude, ChatGPT, Gemini, Cursor, Copilot, n8n, your own agent) manage the WordPress backend: posts, pages, scheduling, media uploads, themes, design (CSS, global styles, templates, theme files), menus, settings and SEO fixes. Exposes one tool set over MCP, a plain REST API and an OpenAPI spec, each AI with its own scoped key.
- * Version:           1.3.0
+ * Version:           1.4.0
  * Requires at least: 6.2
  * Requires PHP:      7.4
  * Author:            Site Commander
@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'SC_VERSION', '1.3.0' );
+define( 'SC_VERSION', '1.4.0' );
 define( 'SC_FILE', __FILE__ );
 define( 'SC_DIR', plugin_dir_path( __FILE__ ) );
 define( 'SC_URL', plugin_dir_url( __FILE__ ) );
@@ -36,6 +36,7 @@ require_once SC_DIR . 'includes/tools/class-sc-tools-people.php';
 require_once SC_DIR . 'includes/tools/class-sc-tools-dev.php';
 require_once SC_DIR . 'includes/tools/class-sc-tools-commerce.php';
 require_once SC_DIR . 'includes/tools/class-sc-tools-builders.php';
+require_once SC_DIR . 'includes/tools/class-sc-tools-shortcode-builders.php';
 require_once SC_DIR . 'includes/class-sc-seo-frontend.php';
 require_once SC_DIR . 'includes/class-sc-admin.php';
 

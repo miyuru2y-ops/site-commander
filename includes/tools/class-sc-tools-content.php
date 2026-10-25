@@ -625,7 +625,7 @@ class SC_Tools_Content {
 		if ( 'elementor' === $builder && isset( $a['content'] ) ) {
 			$msg .= ' Warning: this page is built with Elementor, which ignores post content. Use get_elementor_data and update_elementor_element to change what visitors see.';
 		} elseif ( in_array( $builder, array( 'divi', 'wpbakery' ), true ) && isset( $a['content'] ) ) {
-			$msg .= " Note: this page uses the $builder builder (shortcodes). Keep its existing shortcode structure when editing content.";
+			$msg .= " Note: this page uses the $builder builder (shortcodes). Prefer get_shortcode_layout and update_shortcode_node, which change one module without touching the rest of the layout.";
 		}
 		return self::result( $p->ID, $msg );
 	}
