@@ -191,8 +191,12 @@ class SC_Tools_Dev {
 			'description' => 'Rebuild rewrite rules (fixes 404s on posts/pages after changes to permalinks or custom post types).',
 			'write'       => true,
 			'callback'    => function () {
-				flush_rewrite_rules( false );
-				return array( 'message' => 'Permalinks rebuilt.' );
+				// Hard flush: also rewrites .htaccess (like Settings > Permalinks > Save).
+				require_once ABSPATH . 'wp-admin/includes/file.php';
+				require_once ABSPATH . 'wp-admin/includes/misc.php';
+				flush_rewrite_rules( true );
+				$ht = ABSPATH . '.htaccess';
+				return array( 'message' => 'Permalinks rebuilt.' . ( file_exists( $ht ) && ! wp_is_writable( $ht ) ? ' Note: .htaccess is not writable, so the rewrite rules could not be saved to it.' : '' ) );
 			},
 		) );
 
