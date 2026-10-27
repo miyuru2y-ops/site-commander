@@ -48,6 +48,14 @@ class SC_Tools_Dev {
 			'callback'    => array( __CLASS__, 'run_updates' ),
 		) );
 
+		$t::add( 'reinstall_core', array(
+			'group'       => 'dev',
+			'description' => 'Repair WordPress: re-download and reinstall the current WordPress version (same as "Re-install version" in Dashboard > Updates). Restores missing or damaged core files such as index.php. wp-content, themes, plugins and wp-config.php are not touched.',
+			'write'       => true,
+			'requires'    => 'allow_updates',
+			'callback'    => array( __CLASS__, 'reinstall_core' ),
+		) );
+
 		$t::add( 'maintenance_mode', array(
 			'group'       => 'dev',
 			'description' => 'Turn maintenance mode on/off. Visitors see a "back soon" page (HTTP 503, safe for SEO); logged-in admins still see the site.',
@@ -332,6 +340,34 @@ class SC_Tools_Dev {
 		$out['site_check'] = $check['detail'];
 		$out['message']    = 'Updates finished. ' . $check['detail'] . '.';
 		return $out;
+	}
+
+	public static function reinstall_core( $a ) {
+		SC_Tools_Design::upgrader_includes();
+		require_once ABSPATH . 'wp-admin/includes/admin.php';
+		$before  = array( 'index.php' => file_exists( ABSPATH . 'index.php' ) );
+		$version = get_bloginfo( 'version' );
+		wp_version_check( array(), true );
+		$update = find_core_update( $version, get_locale() );
+		if ( ! $update ) {
+			$update = find_core_update( $version, 'en_US' );
+		}
+		if ( ! $update ) {
+			SC_Tools::fail( "Could not find a download for WordPress $version. Try again later or reinstall from Dashboard > Updates." );
+		}
+		$update           = clone $update;
+		$update->response = 'reinstall';
+		$res              = ( new Core_Upgrader( new Automatic_Upgrader_Skin() ) )->upgrade( $update, array( 'allow_relaxed_file_ownership' => true ) );
+		if ( is_wp_error( $res ) ) {
+			SC_Tools::fail( 'Reinstall failed: ' . $res->get_error_message() );
+		}
+		$check = self::site_responds();
+		return array(
+			'message'        => 'WordPress ' . $version . ' reinstalled. ' . $check['detail'] . '.',
+			'index_php_was'  => $before['index.php'] ? 'present' : 'missing',
+			'index_php_now'  => file_exists( ABSPATH . 'index.php' ) ? 'present' : 'still missing',
+			'site_check'     => $check['detail'],
+		);
 	}
 
 	public static function maintenance( $a ) {
