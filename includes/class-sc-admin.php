@@ -101,6 +101,27 @@ class SC_Admin {
 				self::redirect( 'Settings saved.' );
 				break;
 
+			case 'guard_settings':
+				$mail = isset( $_POST['guard_email'] ) ? sanitize_email( wp_unslash( $_POST['guard_email'] ) ) : '';
+				SC_Plugin::update_settings( array( 'guard_enabled' => empty( $_POST['guard_enabled'] ) ? 0 : 1, 'guard_email' => is_email( $mail ) ? $mail : '' ) );
+				SC_Guard::schedule();
+				self::redirect( 'Security check settings saved.' );
+				break;
+
+			case 'guard_scan':
+				$r = SC_Guard::scan( true );
+				self::redirect( $r['ok'] ? 'Security check finished: no problems found.' : 'Security check finished: ' . count( $r['issues'] ) . ' finding(s). See the Security check section.', $r['ok'] ? 'success' : 'warning' );
+				break;
+
+			case 'guard_repair':
+				try {
+					$r = SC_Guard::repair();
+					self::redirect( 'Core files reinstalled. ' . ( isset( $r['message'] ) ? $r['message'] : '' ) . ' Findings left: ' . (int) $r['remaining_issues'] . '.' );
+				} catch ( Exception $e ) {
+					self::redirect( 'Repair failed: ' . $e->getMessage(), 'error' );
+				}
+				break;
+
 			case 'clear_log':
 				SC_Log::clear();
 				self::redirect( 'Activity log cleared.' );
@@ -358,6 +379,39 @@ class SC_Admin {
 						<a class="button" href="<?php echo esc_url( SC_License::upgrade_url() ); ?>">Upgrade to Pro</a>
 					<?php endif; ?>
 				</p>
+			</div>
+
+			<?php $g = SC_Guard::last_report(); ?>
+			<div class="sc-card" id="guard">
+				<h2>Security check</h2>
+				<p class="sc-sub">Compares WordPress core files with the official list and looks for unknown PHP files, odd plugin folders, new administrators and a broken homepage. Runs daily and e-mails you when something new appears.</p>
+				<?php if ( empty( $g['time'] ) ) : ?>
+					<p>No check has run yet.</p>
+				<?php else : ?>
+					<p><strong><?php echo ! empty( $g['ok'] ) ? 'No problems found' : esc_html( count( $g['issues'] ) . ' finding(s)' ); ?></strong> &middot; last check <?php echo esc_html( human_time_diff( $g['time'] ) ); ?> ago</p>
+					<?php if ( ! empty( $g['issues'] ) ) : ?>
+						<ul style="list-style:disc;margin-left:20px">
+							<?php foreach ( array_slice( $g['issues'], 0, 25 ) as $i ) : ?>
+								<li><?php echo esc_html( $i['message'] ); ?><?php echo $i['item'] ? ' <code>' . esc_html( $i['item'] ) . '</code>' : ''; ?></li>
+							<?php endforeach; ?>
+						</ul>
+					<?php endif; ?>
+					<?php foreach ( (array) $g['notes'] as $n ) : ?>
+						<p style="color:#646970"><?php echo esc_html( $n ); ?></p>
+					<?php endforeach; ?>
+				<?php endif; ?>
+				<div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0">
+					<?php self::form_open( 'guard_scan' ); ?><button class="button button-primary" type="submit">Run check now</button></form>
+					<?php if ( ! empty( $g['can_repair'] ) ) : ?>
+						<?php self::form_open( 'guard_repair' ); ?><button class="button" type="submit" onclick="return confirm('Re-download and reinstall the current WordPress version? Your content, plugins, themes and wp-config.php are not touched.')">Repair core files</button></form>
+					<?php endif; ?>
+				</div>
+				<?php self::form_open( 'guard_settings' ); ?>
+					<?php self::toggle( 'guard_enabled', 'Daily check and e-mail alert', 'Checks once a day. You get one e-mail when the list of findings changes.', $s ); ?>
+					<p><label>Send alerts to <input type="email" name="guard_email" value="<?php echo esc_attr( $s['guard_email'] ); ?>" placeholder="<?php echo esc_attr( get_option( 'admin_email' ) ); ?>" class="regular-text"></label></p>
+					<?php submit_button( 'Save', 'secondary', 'submit', false ); ?>
+				</form>
+				<p class="sc-sub" style="margin-top:12px">Repair only fixes WordPress core files. Unknown files, plugins or users have to be reviewed and removed by you.</p>
 			</div>
 
 			<div class="sc-card" id="activity">

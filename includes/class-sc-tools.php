@@ -49,6 +49,7 @@ class SC_Tools {
 			self::$tools = array();
 			SC_Tools_Content::register();
 			SC_Tools_Media::register();
+			SC_Guard::register_tools();
 			SC_Tools_Design::register();
 			SC_Tools_Site::register();
 			SC_Tools_SEO::register();

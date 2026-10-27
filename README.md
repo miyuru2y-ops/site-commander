@@ -55,6 +55,7 @@ Requires WordPress 6.2+ and PHP 7.4+.
 - Secrets in options (passwords, API keys, tokens) are never returned.
 - Administrators can't be created or modified; core options like `siteurl` are protected.
 - Every change is recorded in the activity log with the AI client's name.
+- **Security check** (daily, plus `check_integrity` tool): compares WordPress core files with the official checksums and flags missing/changed core files, unknown PHP files in core folders or uploads, random-named plugin folders, new administrators and a broken homepage. It e-mails the owner once when the findings change. `reinstall_core` (or the "Repair core files" button) restores core files without touching content, plugins, themes or wp-config.php.
 
 ## Automatic updates (push a release → all sites update)
 

@@ -31,6 +31,8 @@ class SC_Plugin {
 			'seo_output'             => 'auto', // auto | on | off.
 			'log_404'                => 1,
 			'maintenance_mode'       => 0,
+			'guard_enabled'          => 1, // Daily security check with e-mail alert.
+			'guard_email'            => '', // Empty = site admin e-mail.
 		);
 	}
 
@@ -53,6 +55,7 @@ class SC_Plugin {
 	public static function init() {
 		add_action( 'rest_api_init', array( 'SC_MCP_Server', 'register_routes' ) );
 		SC_SEO_Frontend::init();
+		SC_Guard::init();
 		if ( is_admin() ) {
 			SC_Admin::init();
 		}
@@ -68,6 +71,7 @@ class SC_Plugin {
 	}
 
 	public static function deactivate() {
+		SC_Guard::unschedule();
 		// Nothing destructive: keys and settings stay so reactivation just works.
 	}
 

@@ -50,10 +50,11 @@ if ( ! function_exists( 'sc_fs' ) ) {
 	 * The Free-plan creation counter (sc_created_counts) is kept so a reinstall does not reset it.
 	 */
 	function sc_fs_uninstall_cleanup() {
-		foreach ( array( 'sc_settings', 'sc_keys', 'sc_key_hash', 'sc_key_hint', 'sc_activity_log', 'sc_404_log', 'sc_redirects', 'sc_robots_extra', 'sc_home_seo', 'sc_snippets', 'sc_maintenance_message' ) as $opt ) {
+		foreach ( array( 'sc_settings', 'sc_keys', 'sc_key_hash', 'sc_key_hint', 'sc_activity_log', 'sc_404_log', 'sc_redirects', 'sc_robots_extra', 'sc_home_seo', 'sc_snippets', 'sc_maintenance_message', 'sc_guard_report', 'sc_guard_admins' ) as $opt ) {
 			delete_option( $opt );
 		}
 		delete_site_transient( 'sc_update_release' );
+		wp_clear_scheduled_hook( 'sc_guard_scan' );
 	}
 
 	sc_fs()->add_action( 'after_uninstall', 'sc_fs_uninstall_cleanup' );
