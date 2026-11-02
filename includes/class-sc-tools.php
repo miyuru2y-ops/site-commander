@@ -208,7 +208,7 @@ class SC_Tools {
 	}
 
 	public static function fail( $message ) {
-		throw new SC_Tool_Error( $message );
+		throw new SC_Tool_Error( $message ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Returned to the AI client as JSON, never printed as HTML.
 	}
 
 	/** Schema shorthands. */

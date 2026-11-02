@@ -8,7 +8,7 @@ Stable tag: 1.6.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Let any AI (Claude, ChatGPT, Gemini, Cursor, Copilot, n8n) manage your WordPress site in plain language: posts, media, design, SEO and security checks.
+Let any AI (Claude, ChatGPT, Cursor, n8n) manage your WordPress site in plain language: posts, media, design, SEO and security.
 
 == Description ==
 
