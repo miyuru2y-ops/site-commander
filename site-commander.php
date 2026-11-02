@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin Name:       Site Commander – Universal AI Connector
+ * Plugin Name:       Site Commander
  * Plugin URI:        https://github.com/miyuru2y-ops/site-commander
  * Description:       Let any AI (Claude, ChatGPT, Gemini, Cursor, Copilot, n8n, your own agent) manage the WordPress backend: posts, pages, scheduling, media uploads, themes, design (CSS, global styles, templates, theme files), menus, settings and SEO fixes. Exposes one tool set over MCP, a plain REST API and an OpenAPI spec, each AI with its own scoped key.
  * Version:           1.6.0

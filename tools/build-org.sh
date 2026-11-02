@@ -31,6 +31,7 @@ class FS_Org_Build_Stub {
 }
 PHP
 grep -rl "FS_Plugin_Updater" "$OUT/includes/freemius" | xargs -r sed -i 's/FS_Plugin_Updater/FS_Org_Build_Stub/g'
+sed -i "/add_filter( 'site_transient_update_plugins'/d" "$OUT/includes/freemius/includes/class-freemius.php"
 sed -i "s/'is_premium'     => true/'is_premium'     => false/" "$OUT/includes/class-sc-license.php"
 ( cd "$(dirname "$OUT")" && rm -f site-commander-org.zip && zip -qr site-commander-org.zip "$(basename "$OUT")" )
 echo "Built $(dirname "$OUT")/site-commander-org.zip"

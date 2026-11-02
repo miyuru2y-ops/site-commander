@@ -1,4 +1,4 @@
-=== Site Commander – Universal AI Connector ===
+=== Site Commander ===
 Contributors: miyuru2y
 Tags: ai, mcp, claude, chatgpt, seo
 Requires at least: 6.2
