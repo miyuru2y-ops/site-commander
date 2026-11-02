@@ -1010,7 +1010,7 @@ class SC_Tools_Design {
 
 	public static function list_widgets() {
 		global $wp_registered_sidebars;
-		$sidebars = wp_get_sidebars_widgets();
+		$sidebars = (array) get_option( 'sidebars_widgets', array() );
 		$blocks   = get_option( 'widget_block', array() );
 		$out      = array();
 		foreach ( (array) $wp_registered_sidebars as $id => $sb ) {
@@ -1043,7 +1043,7 @@ class SC_Tools_Design {
 			$blocks['_multiwidget'] = 1;
 		}
 		update_option( 'widget_block', $blocks );
-		$sidebars = wp_get_sidebars_widgets();
+		$sidebars = (array) get_option( 'sidebars_widgets', array() );
 		$list     = isset( $sidebars[ $sidebar ] ) ? (array) $sidebars[ $sidebar ] : array();
 		$pos      = isset( $a['position'] ) ? max( 0, (int) $a['position'] ) : count( $list );
 		array_splice( $list, $pos, 0, array( "block-$num" ) );
@@ -1054,7 +1054,7 @@ class SC_Tools_Design {
 
 	public static function remove_widget( $a ) {
 		$wid      = (string) $a['widget_id'];
-		$sidebars = wp_get_sidebars_widgets();
+		$sidebars = (array) get_option( 'sidebars_widgets', array() );
 		foreach ( $sidebars as $sb => $list ) {
 			if ( 'wp_inactive_widgets' === $sb || ! is_array( $list ) ) {
 				continue;
