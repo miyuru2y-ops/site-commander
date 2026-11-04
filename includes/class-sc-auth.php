@@ -53,7 +53,75 @@ class SC_Auth {
 			'created'   => current_time( 'mysql' ),
 			'last_used' => null,
 			'last_ip'   => null,
+			'approval'  => false,
+			'expires'   => '',
+			'ips'       => array(),
+			'daily'     => 0,
 		);
+	}
+
+	/** Clean the optional limits posted from the admin form or passed by code. */
+	public static function clean_limits( array $in ) {
+		$out = array(
+			'approval' => ! empty( $in['approval'] ),
+			'expires'  => '',
+			'ips'      => array(),
+			'daily'    => isset( $in['daily'] ) ? max( 0, (int) $in['daily'] ) : 0,
+		);
+		if ( ! empty( $in['expires'] ) && preg_match( '/^\d{4}-\d{2}-\d{2}$/', (string) $in['expires'] ) ) {
+			$out['expires'] = (string) $in['expires'];
+		}
+		$ips = isset( $in['ips'] ) ? ( is_array( $in['ips'] ) ? $in['ips'] : preg_split( '/[\s,]+/', (string) $in['ips'] ) ) : array();
+		foreach ( $ips as $ip ) {
+			$ip = trim( (string) $ip );
+			if ( '' !== $ip && ( filter_var( $ip, FILTER_VALIDATE_IP ) || preg_match( '#^[0-9a-f:.]+/\d{1,3}$#i', $ip ) ) ) {
+				$out['ips'][] = $ip;
+			}
+		}
+		return $out;
+	}
+
+	/** Whether an IP matches an allow-list entry (exact IP or CIDR range). */
+	public static function ip_matches( $ip, $rule ) {
+		if ( false === strpos( $rule, '/' ) ) {
+			return $ip === $rule;
+		}
+		list( $net, $bits ) = explode( '/', $rule, 2 );
+		$ip_bin  = @inet_pton( $ip ); // phpcs:ignore
+		$net_bin = @inet_pton( $net ); // phpcs:ignore
+		if ( false === $ip_bin || false === $net_bin || strlen( $ip_bin ) !== strlen( $net_bin ) ) {
+			return false;
+		}
+		$bits  = (int) $bits;
+		$bytes = intdiv( $bits, 8 );
+		if ( substr( $ip_bin, 0, $bytes ) !== substr( $net_bin, 0, $bytes ) ) {
+			return false;
+		}
+		$rem = $bits % 8;
+		if ( ! $rem ) {
+			return true;
+		}
+		$mask = chr( ( 0xff << ( 8 - $rem ) ) & 0xff );
+		return ( $ip_bin[ $bytes ] & $mask ) === ( $net_bin[ $bytes ] & $mask );
+	}
+
+	/** Count a change for the key and return a reason string once its daily limit is used up. */
+	public static function over_daily_limit( array $rec ) {
+		$max = isset( $rec['daily'] ) ? (int) $rec['daily'] : 0;
+		if ( $max <= 0 ) {
+			return null;
+		}
+		$opt   = 'sc_key_usage';
+		$usage = get_option( $opt, array() );
+		$usage = is_array( $usage ) ? $usage : array();
+		$day   = current_time( 'Y-m-d' );
+		$used  = ( isset( $usage[ $rec['id'] ]['day'] ) && $usage[ $rec['id'] ]['day'] === $day ) ? (int) $usage[ $rec['id'] ]['n'] : 0;
+		if ( $used >= $max ) {
+			return sprintf( 'The key "%s" has used its limit of %d changes for today. The site owner can raise it under Site Commander → AI connections.', $rec['name'], $max );
+		}
+		$usage[ $rec['id'] ] = array( 'day' => $day, 'n' => $used + 1 );
+		update_option( $opt, $usage, false );
+		return null;
 	}
 
 	public static function has_key() {
@@ -63,7 +131,7 @@ class SC_Auth {
 	/**
 	 * Create a key for one AI. Returns array( plain key, record ).
 	 */
-	public static function create_key( $name, array $groups, $read_only = false ) {
+	public static function create_key( $name, array $groups, $read_only = false, array $limits = array() ) {
 		$valid  = array_keys( SC_Tools::groups() );
 		$groups = array_values( array_intersect( $groups, $valid ) );
 		if ( ! $groups ) {
@@ -71,7 +139,7 @@ class SC_Auth {
 		}
 		$name = trim( sanitize_text_field( $name ) );
 		$key  = 'sc_' . bin2hex( random_bytes( 24 ) );
-		$rec  = self::record( $name ? $name : 'AI connection', substr( $key, -4 ), $groups, $read_only );
+		$rec  = array_merge( self::record( $name ? $name : 'AI connection', substr( $key, -4 ), $groups, $read_only ), self::clean_limits( $limits ) );
 		$keys = self::keys();
 		$keys[ hash( 'sha256', $key ) ] = $rec;
 		self::save( $keys );
@@ -90,7 +158,7 @@ class SC_Auth {
 		return null;
 	}
 
-	public static function update_scope( $id, array $groups, $read_only ) {
+	public static function update_scope( $id, array $groups, $read_only, $limits = null ) {
 		$keys  = self::keys();
 		$valid = array_keys( SC_Tools::groups() );
 		foreach ( $keys as $hash => $rec ) {
@@ -98,6 +166,9 @@ class SC_Auth {
 				$groups                     = array_values( array_intersect( $groups, $valid ) );
 				$keys[ $hash ]['groups']    = $groups ? $groups : $valid;
 				$keys[ $hash ]['read_only'] = (bool) $read_only;
+				if ( is_array( $limits ) ) {
+					$keys[ $hash ] = array_merge( $keys[ $hash ], self::clean_limits( $limits ) );
+				}
 				self::save( $keys );
 				return $keys[ $hash ];
 			}
@@ -168,6 +239,23 @@ class SC_Auth {
 		if ( ! $rec ) {
 			usleep( 300000 ); // Slows down key guessing.
 			return new WP_Error( 'sc_bad_key', 'Missing or invalid Site Commander key.', array( 'status' => 401 ) );
+		}
+
+		if ( ! empty( $rec['expires'] ) && current_time( 'Y-m-d' ) > $rec['expires'] ) {
+			return new WP_Error( 'sc_key_expired', sprintf( 'The key "%s" expired on %s. The site owner can extend it under Site Commander → AI connections.', $rec['name'], $rec['expires'] ), array( 'status' => 401 ) );
+		}
+		if ( ! empty( $rec['ips'] ) ) {
+			$ip  = isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : ''; // phpcs:ignore
+			$hit = false;
+			foreach ( (array) $rec['ips'] as $rule ) {
+				if ( self::ip_matches( $ip, $rule ) ) {
+					$hit = true;
+					break;
+				}
+			}
+			if ( ! $hit ) {
+				return new WP_Error( 'sc_ip_blocked', sprintf( 'The key "%s" may not be used from this IP address (%s).', $rec['name'], $ip ), array( 'status' => 403 ) );
+			}
 		}
 
 		$user_id = (int) SC_Plugin::setting( 'run_as_user' );

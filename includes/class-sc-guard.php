@@ -95,6 +95,7 @@ class SC_Guard {
 		}
 		self::check_uploads( $issues );
 		self::check_plugins( $issues );
+		self::check_plugin_files( $issues, $notes );
 		self::check_admins( $issues );
 
 		$core_broken = false;
@@ -240,6 +241,67 @@ class SC_Guard {
 		}
 	}
 
+	/**
+	 * Compare active WordPress.org plugins with their official checksums: changed or extra PHP files
+	 * in a plugin are a common sign of a hack.
+	 */
+	private static function check_plugin_files( array &$issues, array &$notes ) {
+		$plugins = get_plugins();
+		$active  = (array) get_option( 'active_plugins', array() );
+		$checked = 0;
+		$start   = microtime( true );
+		foreach ( $active as $file ) {
+			if ( ! isset( $plugins[ $file ] ) || false === strpos( $file, '/' ) || microtime( true ) - $start > 40 ) {
+				continue;
+			}
+			$slug = dirname( $file );
+			$ver  = $plugins[ $file ]['Version'];
+			$key  = 'sc_pcs_' . md5( $slug . $ver );
+			$sums = get_transient( $key );
+			if ( false === $sums ) {
+				$res  = wp_remote_get( 'https://downloads.wordpress.org/plugin-checksums/' . rawurlencode( $slug ) . '/' . rawurlencode( $ver ) . '.json', array( 'timeout' => 15 ) );
+				$body = is_wp_error( $res ) || 200 !== (int) wp_remote_retrieve_response_code( $res ) ? null : json_decode( wp_remote_retrieve_body( $res ), true );
+				$sums = ( is_array( $body ) && ! empty( $body['files'] ) ) ? $body['files'] : array();
+				set_transient( $key, $sums, WEEK_IN_SECONDS );
+			}
+			if ( ! $sums ) {
+				continue; // Not hosted on WordPress.org (premium or custom plugin).
+			}
+			$checked++;
+			$dir   = trailingslashit( WP_PLUGIN_DIR . '/' . $slug );
+			$found = 0;
+			foreach ( $sums as $rel => $s ) {
+				if ( '.php' !== substr( $rel, -4 ) || ! file_exists( $dir . $rel ) ) {
+					continue;
+				}
+				$md5 = md5_file( $dir . $rel );
+				if ( ! in_array( $md5, (array) $s['md5'], true ) ) {
+					$issues[] = self::issue( 'plugin_modified', 'high', 'A plugin file differs from the official WordPress.org version. Reinstall the plugin to fix it.', $slug . '/' . $rel, '' );
+					if ( ++$found >= 10 ) {
+						break;
+					}
+				}
+			}
+			$it = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $dir, FilesystemIterator::SKIP_DOTS ) );
+			foreach ( $it as $f ) {
+				if ( $found >= 10 ) {
+					break;
+				}
+				if ( 'php' !== strtolower( $f->getExtension() ) ) {
+					continue;
+				}
+				$rel = ltrim( str_replace( '\\', '/', substr( $f->getPathname(), strlen( $dir ) ) ), '/' );
+				if ( ! isset( $sums[ $rel ] ) ) {
+					$issues[] = self::issue( 'plugin_extra_file', 'high', 'A PHP file in a plugin is not part of the official WordPress.org version.', $slug . '/' . $rel, '' );
+					$found++;
+				}
+			}
+		}
+		if ( $checked ) {
+			$notes[] = sprintf( '%d active WordPress.org plugin(s) compared with their official checksums.', $checked );
+		}
+	}
+
 	/** Tell the owner when an administrator appears that was not there before. */
 	private static function check_admins( array &$issues ) {
 		$now = array();
@@ -256,6 +318,7 @@ class SC_Guard {
 	}
 
 	private static function send_alert( array $report ) {
+		do_action( 'sc_security_alert', $report );
 		$site  = wp_specialchars_decode( get_bloginfo( 'name' ), ENT_QUOTES );
 		$count = count( $report['issues'] );
 		$lines = array();

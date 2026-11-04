@@ -55,7 +55,22 @@ Requires WordPress 6.2+ and PHP 7.4+.
 - Secrets in options (passwords, API keys, tokens) are never returned.
 - Administrators can't be created or modified; core options like `siteurl` are protected.
 - Every change is recorded in the activity log with the AI client's name.
-- **Security check** (daily, plus `check_integrity` tool): compares WordPress core files with the official checksums and flags missing/changed core files, unknown PHP files in core folders or uploads, random-named plugin folders, new administrators and a broken homepage. It e-mails the owner once when the findings change. `reinstall_core` (or the "Repair core files" button) restores core files without touching content, plugins, themes or wp-config.php.
+- **Undo**: most changes (posts, pages, SEO fields, Elementor/blocks, templates, global styles, CSS, settings, redirects, snippets) are snapshotted first. Roll one back from the activity log ("Undo" button) or with `undo_change`. The newest 100 snapshots are kept.
+- **Approval mode** per key: changes wait in an approval list (with an e-mail to the owner) and are applied only when approved.
+- **Key limits**: expiry date, IP allow-list (IPs or CIDR) and a daily change limit per key.
+- **Security check** (daily, plus `check_integrity` tool): compares WordPress core files and active WordPress.org plugins with the official checksums and flags missing/changed core files, changed or extra plugin PHP files, unknown PHP files in core folders or uploads, random-named plugin folders, new administrators and a broken homepage. It e-mails the owner once when the findings change. `reinstall_core` (or the "Repair core files" button) restores core files without touching content, plugins, themes or wp-config.php.
+
+## Integrations (1.7.0)
+
+- **Gutenberg blocks**: `list_blocks`, `get_block`, `update_block`, `insert_block`, `delete_block`, `move_block` edit one block by path without rewriting the page.
+- **ACF**: `get_acf_fields`, `update_acf_fields` (posts and options pages).
+- **Forms**: `list_forms`, `list_form_entries` for Gravity Forms, WPForms Pro, Contact Form 7 + Flamingo, Fluent Forms.
+- **Translations**: `list_languages`, `get_translations`, `create_translation` for Polylang and WPML.
+- **Speed and images**: `page_speed_check`, `image_audit`, `resize_large_images` (originals backed up), `set_webp_uploads`.
+- **Internal links**: `add_internal_link` links the first plain-text occurrence of a phrase.
+- **Webhooks**: signed JSON POSTs for post_published, comment_posted, form_submitted, order_created, user_registered, ai_change, pending_approval, security_alert.
+- **Agency hub**: add client sites (MCP URL + key) in wp-admin; the AI uses `list_client_sites`, `client_site_tools`, `run_on_client_site`.
+- **Activity report**: weekly/monthly e-mail summary, or `activity_report`.
 
 ## Automatic updates (push a release → all sites update)
 

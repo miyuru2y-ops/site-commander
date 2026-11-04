@@ -17,7 +17,7 @@ class SC_Log {
 	/** Name of the AI client making the current request (set by the transport). */
 	public static $client = '';
 
-	public static function add( $tool, $args, $ok, $summary = '' ) {
+	public static function add( $tool, $args, $ok, $summary = '', array $extra = array() ) {
 		$log = get_option( self::OPTION, array() );
 		if ( ! is_array( $log ) ) {
 			$log = array();
@@ -41,7 +41,7 @@ class SC_Log {
 				'ok'      => (bool) $ok,
 				'summary' => mb_substr( (string) $summary, 0, 240 ),
 				'args'    => $clean,
-			)
+			) + $extra
 		);
 		update_option( self::OPTION, array_slice( $log, 0, self::MAX ), false );
 	}
@@ -49,6 +49,20 @@ class SC_Log {
 	public static function get( $limit = 50 ) {
 		$log = get_option( self::OPTION, array() );
 		return array_slice( is_array( $log ) ? $log : array(), 0, max( 1, (int) $limit ) );
+	}
+
+	/** Flag the log row of a change that was rolled back. */
+	public static function mark_undone( $uid ) {
+		$log = get_option( self::OPTION, array() );
+		if ( ! is_array( $log ) ) {
+			return;
+		}
+		foreach ( $log as $i => $row ) {
+			if ( isset( $row['undo'] ) && $row['undo'] === $uid ) {
+				$log[ $i ]['undone'] = current_time( 'mysql' );
+			}
+		}
+		update_option( self::OPTION, $log, false );
 	}
 
 	public static function clear() {

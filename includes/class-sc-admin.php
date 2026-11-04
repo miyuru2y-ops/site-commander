@@ -36,6 +36,10 @@ class SC_Admin {
 		if ( SC_Plugin::setting( 'maintenance_mode' ) ) {
 			echo '<div class="notice notice-warning"><p><strong>Site Commander:</strong> Maintenance mode is ON — visitors see the maintenance page. <a href="' . esc_url( admin_url( 'admin.php?page=' . self::PAGE . '#permissions' ) ) . '">Turn off</a></p></div>';
 		}
+		$waiting = SC_Approval::count();
+		if ( $waiting && ( ! $screen || 'toplevel_page_' . self::PAGE !== $screen->id ) ) {
+			echo '<div class="notice notice-warning"><p><strong>Site Commander:</strong> ' . (int) $waiting . ' AI change(s) are waiting for your approval. <a href="' . esc_url( admin_url( 'admin.php?page=' . self::PAGE . '#approvals' ) ) . '">Review</a></p></div>';
+		}
 		if ( $screen && 'plugins' === $screen->id && ! SC_Auth::has_key() ) {
 			echo '<div class="notice notice-info"><p><strong>Site Commander</strong> is active. <a href="' . esc_url( admin_url( 'admin.php?page=' . self::PAGE ) ) . '">Create a connection key</a> to let your AI manage this site.</p></div>';
 		}
@@ -61,7 +65,7 @@ class SC_Admin {
 				}
 				$name   = isset( $_POST['key_name'] ) ? sanitize_text_field( wp_unslash( $_POST['key_name'] ) ) : '';
 				$groups = isset( $_POST['key_groups'] ) ? array_map( 'sanitize_key', (array) wp_unslash( $_POST['key_groups'] ) ) : array();
-				list( $key, $rec ) = SC_Auth::create_key( $name, $groups, ! empty( $_POST['key_read_only'] ) );
+				list( $key, $rec ) = SC_Auth::create_key( $name, $groups, ! empty( $_POST['key_read_only'] ), self::posted_limits() );
 				set_transient( 'sc_new_key_' . get_current_user_id(), array( $key, $rec['name'] ), 15 * MINUTE_IN_SECONDS );
 				SC_Log::$client = 'wp-admin';
 				SC_Log::add( 'create_key', array( 'name' => $rec['name'] ), true, 'Connection created for "' . $rec['name'] . '" (' . implode( ', ', $rec['groups'] ) . ( $rec['read_only'] ? ', read-only' : '' ) . ').' );
@@ -81,7 +85,7 @@ class SC_Admin {
 			case 'scope':
 				$id     = isset( $_POST['key_id'] ) ? sanitize_text_field( wp_unslash( $_POST['key_id'] ) ) : '';
 				$groups = isset( $_POST['key_groups'] ) ? array_map( 'sanitize_key', (array) wp_unslash( $_POST['key_groups'] ) ) : array();
-				$rec    = SC_Auth::update_scope( $id, $groups, ! empty( $_POST['key_read_only'] ) );
+				$rec    = SC_Auth::update_scope( $id, $groups, ! empty( $_POST['key_read_only'] ), self::posted_limits() );
 				self::redirect( $rec ? 'Access for "' . $rec['name'] . '" updated.' : 'Key not found.' );
 				break;
 
@@ -122,12 +126,125 @@ class SC_Admin {
 				}
 				break;
 
+			case 'approve':
+			case 'reject':
+				$pid = isset( $_POST['pending_id'] ) ? sanitize_text_field( wp_unslash( $_POST['pending_id'] ) ) : '';
+				if ( 'reject' === $do ) {
+					$item = SC_Approval::reject( $pid );
+					self::redirect( $item ? 'Change rejected: nothing was applied.' : 'That change is no longer waiting.', 'warning' );
+				}
+				$r = SC_Approval::approve( $pid );
+				self::redirect( $r['ok'] ? 'Approved and applied' . ( isset( $r['data']['message'] ) ? ': ' . $r['data']['message'] : '.' ) : 'Could not apply: ' . $r['error'], $r['ok'] ? 'success' : 'error' );
+				break;
+
+			case 'approve_all':
+				$n = 0;
+				$f = 0;
+				foreach ( array_keys( SC_Approval::all() ) as $pid ) {
+					$r = SC_Approval::approve( $pid );
+					if ( $r['ok'] ) {
+						$n++;
+					} else {
+						$f++;
+					}
+				}
+				self::redirect( "Applied $n change(s)" . ( $f ? ", $f failed (see the activity log)." : '.' ), $f ? 'warning' : 'success' );
+				break;
+
+			case 'undo':
+				$uid            = isset( $_POST['undo_id'] ) ? sanitize_text_field( wp_unslash( $_POST['undo_id'] ) ) : '';
+				SC_Log::$client = 'wp-admin';
+				$r              = SC_Tools::call( 'undo_change', array( 'undo_id' => $uid ) );
+				self::redirect( $r['ok'] ? $r['data']['message'] : 'Undo failed: ' . $r['error'], $r['ok'] ? 'success' : 'error' );
+				break;
+
+			case 'webhook_add':
+				if ( ! SC_License::is_pro() ) {
+					self::redirect( 'Webhooks are a Pro feature. ' . SC_License::upgrade_note(), 'error' );
+				}
+				try {
+					$url    = isset( $_POST['webhook_url'] ) ? esc_url_raw( wp_unslash( $_POST['webhook_url'] ) ) : '';
+					$events = isset( $_POST['webhook_events'] ) ? array_map( 'sanitize_key', (array) wp_unslash( $_POST['webhook_events'] ) ) : array();
+					$h      = SC_Webhooks::add( $url, $events );
+					set_transient( 'sc_new_secret_' . get_current_user_id(), $h['secret'], 15 * MINUTE_IN_SECONDS );
+					self::redirect( 'Webhook added. Copy its signing secret below.' );
+				} catch ( SC_Tool_Error $e ) {
+					self::redirect( $e->getMessage(), 'error' );
+				}
+				break;
+
+			case 'webhook_delete':
+				SC_Webhooks::remove( isset( $_POST['webhook_id'] ) ? sanitize_text_field( wp_unslash( $_POST['webhook_id'] ) ) : '' );
+				self::redirect( 'Webhook removed.', 'warning' );
+				break;
+
+			case 'webhook_test':
+				$r = SC_Webhooks::fire( 'test', array( 'message' => 'Test from Site Commander' ), isset( $_POST['webhook_id'] ) ? sanitize_text_field( wp_unslash( $_POST['webhook_id'] ) ) : '', true );
+				self::redirect( ! $r ? 'Webhook not found.' : ( is_wp_error( $r ) ? 'Test failed: ' . $r->get_error_message() : 'Test sent, the URL answered HTTP ' . wp_remote_retrieve_response_code( $r ) . '.' ), ( $r && ! is_wp_error( $r ) ) ? 'success' : 'error' );
+				break;
+
+			case 'site_add':
+				if ( ! SC_License::is_pro() ) {
+					self::redirect( 'Client sites are a Pro feature. ' . SC_License::upgrade_note(), 'error' );
+				}
+				try {
+					$cs = SC_Hub::add(
+						isset( $_POST['site_name'] ) ? sanitize_text_field( wp_unslash( $_POST['site_name'] ) ) : '',
+						isset( $_POST['site_url'] ) ? esc_url_raw( wp_unslash( $_POST['site_url'] ) ) : '',
+						isset( $_POST['site_key'] ) ? sanitize_text_field( wp_unslash( $_POST['site_key'] ) ) : ''
+					);
+					self::redirect( 'Client site "' . $cs['name'] . '" added.' );
+				} catch ( SC_Tool_Error $e ) {
+					self::redirect( $e->getMessage(), 'error' );
+				}
+				break;
+
+			case 'site_remove':
+				SC_Hub::remove( isset( $_POST['site_id'] ) ? sanitize_text_field( wp_unslash( $_POST['site_id'] ) ) : '' );
+				self::redirect( 'Client site removed.', 'warning' );
+				break;
+
+			case 'report_settings':
+				$mail = isset( $_POST['report_email'] ) ? sanitize_email( wp_unslash( $_POST['report_email'] ) ) : '';
+				$freq = ( isset( $_POST['report_frequency'] ) && 'weekly' === $_POST['report_frequency'] ) ? 'weekly' : 'monthly';
+				SC_Plugin::update_settings( array( 'report_enabled' => empty( $_POST['report_enabled'] ) ? 0 : 1, 'report_email' => is_email( $mail ) ? $mail : '', 'report_frequency' => $freq ) );
+				SC_Report::unschedule();
+				SC_Report::init();
+				self::redirect( 'Report settings saved.' );
+				break;
+
+			case 'report_send':
+				$r = SC_Report::send( '', 'weekly' === SC_Plugin::setting( 'report_frequency' ) ? 7 : 30 );
+				self::redirect( $r['sent'] ? 'Report sent to ' . $r['to'] . '.' : 'The e-mail could not be sent. Check the site\'s mail setup.', $r['sent'] ? 'success' : 'error' );
+				break;
+
 			case 'clear_log':
 				SC_Log::clear();
 				self::redirect( 'Activity log cleared.' );
 				break;
 		}
 		self::redirect( 'Nothing to do.', 'warning' );
+	}
+
+	/** Optional key limits from the add/edit connection form (nonce checked in handle()). */
+	private static function posted_limits() {
+		// phpcs:disable WordPress.Security.NonceVerification.Missing
+		return array(
+			'approval' => ! empty( $_POST['key_approval'] ),
+			'expires'  => isset( $_POST['key_expires'] ) ? sanitize_text_field( wp_unslash( $_POST['key_expires'] ) ) : '',
+			'ips'      => isset( $_POST['key_ips'] ) ? sanitize_text_field( wp_unslash( $_POST['key_ips'] ) ) : '',
+			'daily'    => isset( $_POST['key_daily'] ) ? absint( $_POST['key_daily'] ) : 0,
+		);
+		// phpcs:enable
+	}
+
+	private static function limit_fields( array $k ) {
+		echo '<label><input type="checkbox" name="key_approval" value="1" ' . checked( ! empty( $k['approval'] ), true, false ) . '> <strong>Needs my approval</strong> — changes wait in an approval list until you approve them</label>';
+		echo '<div style="display:flex;gap:14px;flex-wrap:wrap;margin:10px 0">';
+		echo '<label>Expires on<br><input type="date" name="key_expires" value="' . esc_attr( isset( $k['expires'] ) ? $k['expires'] : '' ) . '"></label>';
+		echo '<label>Max changes per day<br><input type="number" min="0" name="key_daily" value="' . esc_attr( ! empty( $k['daily'] ) ? (int) $k['daily'] : '' ) . '" placeholder="no limit" style="width:110px"></label>';
+		echo '<label>Only from these IPs<br><input type="text" name="key_ips" value="' . esc_attr( implode( ', ', isset( $k['ips'] ) ? (array) $k['ips'] : array() ) ) . '" placeholder="any IP (e.g. 203.0.113.5, 10.0.0.0/8)" class="regular-text"></label>';
+		echo '</div>';
 	}
 
 	private static function form_open( $do ) {
@@ -251,7 +368,7 @@ class SC_Admin {
 						<?php foreach ( SC_Auth::keys() as $k ) : ?>
 							<tr>
 								<td><strong><?php echo esc_html( $k['name'] ); ?></strong><br><span style="color:#646970">since <?php echo esc_html( substr( $k['created'], 0, 10 ) ); ?></span></td>
-								<td><?php echo count( $k['groups'] ) === count( $groups ) ? 'Everything' : esc_html( implode( ', ', $k['groups'] ) ); ?><?php echo $k['read_only'] ? ' · <strong>read-only</strong>' : ''; ?></td>
+								<td><?php echo count( $k['groups'] ) === count( $groups ) ? 'Everything' : esc_html( implode( ', ', $k['groups'] ) ); ?><?php echo $k['read_only'] ? ' · <strong>read-only</strong>' : ''; ?><?php echo ! empty( $k['approval'] ) ? ' · <strong>needs approval</strong>' : ''; ?><?php echo ! empty( $k['expires'] ) ? ' · expires ' . esc_html( $k['expires'] ) : ''; ?><?php echo ! empty( $k['daily'] ) ? ' · max ' . (int) $k['daily'] . '/day' : ''; ?><?php echo ! empty( $k['ips'] ) ? ' · IP-limited' : ''; ?></td>
 								<td><code>…<?php echo esc_html( $k['hint'] ); ?></code></td>
 								<td><?php echo $k['last_used'] ? esc_html( $k['last_used'] ) : '<span style="color:#646970">never</span>'; ?></td>
 								<td style="white-space:nowrap">
@@ -259,6 +376,7 @@ class SC_Admin {
 										<?php self::form_open( 'scope' ); ?>
 											<input type="hidden" name="key_id" value="<?php echo esc_attr( $k['id'] ); ?>">
 											<?php self::group_checkboxes( $groups, $k['groups'], $k['read_only'] ); ?>
+											<?php self::limit_fields( $k ); ?>
 											<button class="button button-small button-primary">Save</button>
 										</form>
 									</details>
@@ -281,6 +399,7 @@ class SC_Admin {
 						<p><label><strong>Name</strong><br><input type="text" name="key_name" class="regular-text" placeholder="e.g. Claude, ChatGPT, n8n workflow" required></label></p>
 						<p style="margin-bottom:4px"><strong>What may it use?</strong></p>
 						<?php self::group_checkboxes( $groups, array_keys( $groups ), false ); ?>
+						<details style="margin:0 0 10px"><summary style="cursor:pointer">Safety limits (optional)</summary><div style="padding:8px 0"><?php self::limit_fields( array() ); ?></div></details>
 						<p><button class="button button-primary">Create key</button></p>
 					</form>
 				</details>
@@ -319,6 +438,33 @@ class SC_Admin {
 				);
 				?>
 			</div>
+
+			<?php $pending = SC_Approval::all(); ?>
+			<?php if ( $pending ) : ?>
+			<div class="sc-card" id="approvals" style="border-color:#dba617">
+				<h2>Waiting for your approval (<?php echo (int) count( $pending ); ?>)</h2>
+				<p class="sc-sub">These changes come from connections that need approval. Nothing below has been applied yet.</p>
+				<table class="widefat striped sc-log">
+					<thead><tr><th>Time</th><th>AI</th><th>Change</th><th></th></tr></thead>
+					<tbody>
+					<?php foreach ( array_reverse( $pending ) as $p ) : ?>
+						<tr>
+							<td><?php echo esc_html( $p['time'] ); ?></td>
+							<td><?php echo esc_html( $p['client'] ); ?></td>
+							<td><code><?php echo esc_html( $p['tool'] ); ?></code><br><span style="color:#50575e"><?php echo esc_html( $p['preview'] ); ?></span></td>
+							<td style="white-space:nowrap">
+								<?php self::form_open( 'approve' ); ?><input type="hidden" name="pending_id" value="<?php echo esc_attr( $p['id'] ); ?>"><button class="button button-small button-primary">Approve</button></form>
+								<?php self::form_open( 'reject' ); ?><input type="hidden" name="pending_id" value="<?php echo esc_attr( $p['id'] ); ?>"><button class="button button-small">Reject</button></form>
+							</td>
+						</tr>
+					<?php endforeach; ?>
+					</tbody>
+				</table>
+				<?php if ( count( $pending ) > 1 ) : ?>
+					<?php self::form_open( 'approve_all' ); ?><p><button class="button" onclick="return confirm('Apply all waiting changes?')">Approve all</button></p></form>
+				<?php endif; ?>
+			</div>
+			<?php endif; ?>
 
 			<div class="sc-card" id="permissions">
 				<h2>2. What AI may do</h2>
@@ -416,13 +562,13 @@ class SC_Admin {
 
 			<div class="sc-card" id="activity">
 				<h2>Activity log</h2>
-				<p class="sc-sub">Every change made by an AI, newest first.</p>
+				<p class="sc-sub">Every change made by an AI, newest first. Most changes to posts, pages, settings and CSS can be undone with one click.</p>
 				<?php $log = SC_Log::get( 50 ); ?>
 				<?php if ( ! $log ) : ?>
 					<p>No activity yet.</p>
 				<?php else : ?>
 					<table class="widefat striped sc-log">
-						<thead><tr><th>Time</th><th>Client</th><th>Action</th><th>Result</th></tr></thead>
+						<thead><tr><th>Time</th><th>Client</th><th>Action</th><th>Result</th><th></th></tr></thead>
 						<tbody>
 						<?php foreach ( $log as $row ) : ?>
 							<tr>
@@ -430,12 +576,114 @@ class SC_Admin {
 								<td><?php echo esc_html( $row['client'] ); ?></td>
 								<td><code><?php echo esc_html( $row['tool'] ); ?></code></td>
 								<td><?php echo $row['ok'] ? '' : '<strong style="color:#b32d2e">Failed:</strong> '; ?><?php echo esc_html( $row['summary'] ); ?></td>
+								<td style="white-space:nowrap">
+									<?php if ( ! empty( $row['undone'] ) ) : ?>
+										<span style="color:#646970">Undone</span>
+									<?php elseif ( ! empty( $row['undo'] ) && SC_Undo::get( $row['undo'] ) ) : ?>
+										<?php self::form_open( 'undo' ); ?><input type="hidden" name="undo_id" value="<?php echo esc_attr( $row['undo'] ); ?>"><button class="button button-small" onclick="return confirm('Undo this change?')">Undo</button></form>
+									<?php endif; ?>
+								</td>
 							</tr>
 						<?php endforeach; ?>
 						</tbody>
 					</table>
 					<?php self::form_open( 'clear_log' ); ?><p><button class="button button-small">Clear log</button></p></form>
 				<?php endif; ?>
+			</div>
+
+			<?php
+			$hooks  = SC_Webhooks::all();
+			$secret = get_transient( 'sc_new_secret_' . get_current_user_id() );
+			if ( $secret ) {
+				delete_transient( 'sc_new_secret_' . get_current_user_id() );
+			}
+			?>
+			<div class="sc-card" id="webhooks">
+				<h2>Webhooks</h2>
+				<p class="sc-sub">Tell n8n, Zapier, Make or your own AI agent when something happens: a new order, form entry, comment, or an AI change. Each request is a signed JSON POST (header <code>X-SC-Signature: sha256=HMAC(body, secret)</code>).</p>
+				<?php if ( $secret ) : ?>
+					<div class="sc-keybox"><?php self::copy_field( 'Signing secret (shown once)', $secret, true ); ?></div>
+				<?php endif; ?>
+				<?php if ( $hooks ) : ?>
+					<table class="widefat striped sc-log" style="margin-bottom:12px">
+						<thead><tr><th>URL</th><th>Events</th><th>Last delivery</th><th></th></tr></thead>
+						<tbody>
+						<?php foreach ( $hooks as $h ) : ?>
+							<tr>
+								<td><code><?php echo esc_html( $h['url'] ); ?></code></td>
+								<td><?php echo esc_html( implode( ', ', $h['events'] ) ); ?></td>
+								<td><?php echo esc_html( $h['last'] ? $h['last'] : '—' ); ?></td>
+								<td style="white-space:nowrap">
+									<?php self::form_open( 'webhook_test' ); ?><input type="hidden" name="webhook_id" value="<?php echo esc_attr( $h['id'] ); ?>"><button class="button button-small">Test</button></form>
+									<?php self::form_open( 'webhook_delete' ); ?><input type="hidden" name="webhook_id" value="<?php echo esc_attr( $h['id'] ); ?>"><button class="button button-small" onclick="return confirm('Remove this webhook?')">Remove</button></form>
+								</td>
+							</tr>
+						<?php endforeach; ?>
+						</tbody>
+					</table>
+				<?php endif; ?>
+				<?php if ( SC_License::is_pro() ) : ?>
+					<details class="sc-client"><summary>+ Add a webhook</summary>
+						<?php self::form_open( 'webhook_add' ); ?>
+							<p><input type="url" name="webhook_url" class="large-text" placeholder="https://your-n8n.example.com/webhook/..." required></p>
+							<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:4px 12px;margin:0 0 10px">
+								<?php foreach ( SC_Webhooks::events() as $ev => $label ) : ?>
+									<label><input type="checkbox" name="webhook_events[]" value="<?php echo esc_attr( $ev ); ?>"> <?php echo esc_html( $label ); ?></label>
+								<?php endforeach; ?>
+							</div>
+							<p><button class="button button-primary">Add webhook</button></p>
+						</form>
+					</details>
+				<?php else : ?>
+					<p><em>Webhooks are a Pro feature.</em></p>
+				<?php endif; ?>
+			</div>
+
+			<?php $sites = SC_Hub::all(); ?>
+			<div class="sc-card" id="clients">
+				<h2>Client sites</h2>
+				<p class="sc-sub">For agencies: let the AI connected to this site also work on your clients' sites. On each client site, create a Site Commander key, then add its MCP URL and key here. The AI can then use <code>list_client_sites</code> and <code>run_on_client_site</code>. Keys are stored on this site only and are never shown to the AI.</p>
+				<?php if ( $sites ) : ?>
+					<table class="widefat striped sc-log" style="margin-bottom:12px">
+						<thead><tr><th>Name</th><th>MCP URL</th><th>Added</th><th></th></tr></thead>
+						<tbody>
+						<?php foreach ( $sites as $cs ) : ?>
+							<tr>
+								<td><strong><?php echo esc_html( $cs['name'] ); ?></strong></td>
+								<td><code><?php echo esc_html( $cs['url'] ); ?></code></td>
+								<td><?php echo esc_html( substr( $cs['added'], 0, 10 ) ); ?></td>
+								<td><?php self::form_open( 'site_remove' ); ?><input type="hidden" name="site_id" value="<?php echo esc_attr( $cs['id'] ); ?>"><button class="button button-small" onclick="return confirm('Remove this client site?')">Remove</button></form></td>
+							</tr>
+						<?php endforeach; ?>
+						</tbody>
+					</table>
+				<?php endif; ?>
+				<?php if ( SC_License::is_pro() ) : ?>
+					<details class="sc-client"><summary>+ Add a client site</summary>
+						<?php self::form_open( 'site_add' ); ?>
+							<p><label>Name<br><input type="text" name="site_name" class="regular-text" placeholder="e.g. Bakery client"></label></p>
+							<p><label>MCP URL (from the client site's Site Commander screen)<br><input type="url" name="site_url" class="large-text" placeholder="https://client.com/wp-json/site-commander/v1/mcp" required></label></p>
+							<p><label>Key<br><input type="password" name="site_key" class="regular-text" autocomplete="off" placeholder="sc_…"></label></p>
+							<p><button class="button button-primary">Add client site</button></p>
+						</form>
+					</details>
+				<?php else : ?>
+					<p><em>Client sites are a Pro feature.</em></p>
+				<?php endif; ?>
+			</div>
+
+			<div class="sc-card" id="report">
+				<h2>Activity report</h2>
+				<p class="sc-sub">E-mail a plain summary of what the AI changed — handy for clients and managers.</p>
+				<?php self::form_open( 'report_settings' ); ?>
+					<?php self::toggle( 'report_enabled', 'Send the report automatically', 'Number of changes, most common tasks, recent changes and the security status.', $s ); ?>
+					<p>
+						<label>Every <select name="report_frequency"><option value="monthly" <?php selected( $s['report_frequency'], 'monthly' ); ?>>month</option><option value="weekly" <?php selected( $s['report_frequency'], 'weekly' ); ?>>week</option></select></label>
+						<label style="margin-left:12px">to <input type="email" name="report_email" value="<?php echo esc_attr( $s['report_email'] ); ?>" placeholder="<?php echo esc_attr( get_option( 'admin_email' ) ); ?>" class="regular-text"></label>
+					</p>
+					<?php submit_button( 'Save', 'secondary', 'submit', false ); ?>
+				</form>
+				<?php self::form_open( 'report_send' ); ?><p><button class="button">Send a report now</button></p></form>
 			</div>
 
 			<div class="sc-card">

@@ -50,11 +50,16 @@ if ( ! function_exists( 'sc_fs' ) ) {
 	 * The Free-plan creation counter (sc_created_counts) is kept so a reinstall does not reset it.
 	 */
 	function sc_fs_uninstall_cleanup() {
-		foreach ( array( 'sc_settings', 'sc_keys', 'sc_key_hash', 'sc_key_hint', 'sc_activity_log', 'sc_404_log', 'sc_redirects', 'sc_robots_extra', 'sc_home_seo', 'sc_snippets', 'sc_maintenance_message', 'sc_guard_report', 'sc_guard_admins' ) as $opt ) {
+		foreach ( array( 'sc_settings', 'sc_keys', 'sc_key_hash', 'sc_key_hint', 'sc_activity_log', 'sc_404_log', 'sc_redirects', 'sc_robots_extra', 'sc_home_seo', 'sc_snippets', 'sc_maintenance_message', 'sc_guard_report', 'sc_guard_admins', 'sc_pending', 'sc_webhooks', 'sc_remote_sites', 'sc_key_usage', 'sc_report_last' ) as $opt ) {
 			delete_option( $opt );
 		}
 		delete_site_transient( 'sc_update_release' );
 		wp_clear_scheduled_hook( 'sc_guard_scan' );
+		wp_clear_scheduled_hook( 'sc_report_check' );
+		foreach ( (array) get_option( 'sc_undo_index', array() ) as $uid ) {
+			delete_option( 'sc_undo_' . $uid );
+		}
+		delete_option( 'sc_undo_index' );
 	}
 
 	sc_fs()->add_action( 'after_uninstall', 'sc_fs_uninstall_cleanup' );
@@ -88,7 +93,13 @@ class SC_License {
 			'save_user', 'moderate_comments', 'reply_to_comment', 'list_products', 'save_product', 'list_orders', 'update_order_status',
 			// Dev.
 			'run_updates', 'maintenance_mode', 'save_code_snippet', 'delete_code_snippet', 'update_option',
-			'database_search_replace', 'run_cron_event', 'read_debug_log', 'export_content', 'self_update',
+			'database_search_replace', 'run_cron_event', 'read_debug_log', 'export_content',
+			// 1.7.0.
+			'update_block', 'insert_block', 'delete_block', 'move_block', 'get_acf_fields', 'update_acf_fields',
+			'list_languages', 'get_translations', 'create_translation', 'add_internal_link',
+			'list_forms', 'list_form_entries', 'resize_large_images', 'set_webp_uploads',
+			'list_webhooks', 'add_webhook', 'delete_webhook', 'test_webhook',
+			'list_client_sites', 'client_site_tools', 'run_on_client_site', 'activity_report',
 		);
 	}
 

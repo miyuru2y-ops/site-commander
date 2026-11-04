@@ -50,6 +50,13 @@ class SC_Tools {
 			SC_Tools_Content::register();
 			SC_Tools_Media::register();
 			SC_Guard::register_tools();
+			SC_Undo::register_tools();
+			SC_Approval::register_tools();
+			SC_Tools_Blocks::register();
+			SC_Tools_Extras::register();
+			SC_Webhooks::register_tools();
+			SC_Hub::register_tools();
+			SC_Report::register_tools();
 			SC_Tools_Design::register();
 			SC_Tools_Site::register();
 			SC_Tools_SEO::register();
@@ -151,14 +158,42 @@ class SC_Tools {
 			}
 		}
 
+		$rec = SC_Auth::$current;
+		if ( $rec && $tool['write'] ) {
+			$is_dry = isset( $tool['properties']['dry_run'] ) && self::bool( $args, 'dry_run', true );
+			$limit  = $is_dry ? null : SC_Auth::over_daily_limit( $rec );
+			if ( $limit ) {
+				SC_Log::add( $name, $args, false, 'Refused: ' . $limit );
+				return array( 'ok' => false, 'error' => $limit );
+			}
+			if ( ! empty( $rec['approval'] ) && ! $is_dry ) {
+				$pid = SC_Approval::queue( $name, $args, $rec );
+				SC_Log::add( $name, $args, true, 'Waiting for approval by the site owner (' . $pid . ').', array( 'pending' => $pid ) );
+				return array(
+					'ok'   => true,
+					'data' => array(
+						'message'    => 'Queued: this connection needs the site owner\'s approval, so the change has NOT been applied yet. It will be applied when the owner approves it in WordPress (Site Commander → Approvals).',
+						'pending_id' => $pid,
+						'applied'    => false,
+					),
+				);
+			}
+		}
+
 		try {
+			$snap   = $tool['write'] ? SC_Undo::capture( $name, $args ) : null;
 			$result = call_user_func( $tool['callback'], $args );
 			if ( is_wp_error( $result ) ) {
 				throw new SC_Tool_Error( $result->get_error_message() );
 			}
 			if ( $tool['write'] ) {
 				$summary = is_array( $result ) && isset( $result['message'] ) ? $result['message'] : 'done';
-				SC_Log::add( $name, $args, true, $summary );
+				$uid     = ( is_array( $result ) && empty( $result['dry_run'] ) ) ? SC_Undo::store( $snap, $name, $result, $summary ) : '';
+				SC_Log::add( $name, $args, true, $summary, $uid ? array( 'undo' => $uid ) : array() );
+				if ( $uid && is_array( $result ) ) {
+					$result['undo_id'] = $uid;
+				}
+				do_action( 'sc_tool_done', $name, $args, $summary );
 			}
 			return array( 'ok' => true, 'data' => $result );
 		} catch ( Throwable $e ) {

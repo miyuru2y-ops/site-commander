@@ -4,7 +4,7 @@ Tags: ai, mcp, claude, chatgpt, seo
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.6.0
+Stable tag: 1.7.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -23,14 +23,19 @@ It exposes the site-management tools over MCP (Model Context Protocol), a plain 
 * Change the design: Additional CSS, theme settings, block-theme styles and templates, menus, widgets
 * Fix SEO: titles, meta descriptions, schema, alt text, redirects, robots.txt (works with Yoast, Rank Math, SEOPress and AIOSEO)
 * Maintenance: updates, caches, Site Health, debug log, cron
-* Edit pages built with Elementor (and, in beta, Divi and WPBakery)
+* Edit pages built with Elementor (and, in beta, Divi and WPBakery) or one Gutenberg block at a time
+* Read form entries (Gravity Forms, WPForms, Contact Form 7 + Flamingo, Fluent Forms), edit ACF fields, create Polylang/WPML translations
+* Check page speed, find heavy images, resize them and switch new uploads to WebP
+* Send site events to n8n, Zapier or Make with signed webhooks
 
 **You stay in control**
 
 * A separate key per AI, each limited to chosen tool groups or read-only
 * Keys only work on the site that issued them and can be revoked at any time
 * Risky abilities are off until you enable them
-* Every change is written to an activity log
+* Every change is written to an activity log, and most changes can be undone with one click
+* Approval mode: changes from a connection can wait for your approval before they are applied
+* Keys can expire, be limited to certain IP addresses and to a number of changes per day
 * Built-in security check: compares WordPress core files with the official checksums, looks for unknown PHP files and new administrator accounts, and can email you and reinstall damaged core files
 
 = Free and Pro =
@@ -64,6 +69,15 @@ This plugin uses the Freemius SDK for licensing, optional opt-in usage data and 
 The security check and link checker make HTTP requests to your own site's URLs only.
 
 == Changelog ==
+
+= 1.7.0 =
+* Undo for most AI changes, from the activity log or with the undo_change tool.
+* Approval mode per connection, with an e-mail when changes are waiting.
+* Key expiry dates, IP allow-lists and daily change limits.
+* Gutenberg block editing tools, ACF fields, form entries, Polylang/WPML translations, internal links.
+* Page speed check, image audit, image resizing and WebP uploads.
+* Webhooks, agency client sites and an e-mailed activity report.
+* Security check also compares active WordPress.org plugins with their official checksums.
 
 = 1.6.0 =
 * Security check: core checksum comparison, unknown PHP file detection, new administrator alerts, daily email alert, one-click core repair.

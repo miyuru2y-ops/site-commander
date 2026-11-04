@@ -33,6 +33,10 @@ class SC_Plugin {
 			'maintenance_mode'       => 0,
 			'guard_enabled'          => 1, // Daily security check with e-mail alert.
 			'guard_email'            => '', // Empty = site admin e-mail.
+			'webp_uploads'           => 0, // Save resized copies of new JPEG/PNG uploads as WebP.
+			'report_enabled'         => 0, // E-mail an AI activity report.
+			'report_email'           => '',
+			'report_frequency'       => 'monthly', // weekly | monthly.
 		);
 	}
 
@@ -56,6 +60,9 @@ class SC_Plugin {
 		add_action( 'rest_api_init', array( 'SC_MCP_Server', 'register_routes' ) );
 		SC_SEO_Frontend::init();
 		SC_Guard::init();
+		SC_Webhooks::init();
+		SC_Report::init();
+		SC_Tools_Extras::init();
 		if ( is_admin() ) {
 			SC_Admin::init();
 		}
@@ -72,6 +79,7 @@ class SC_Plugin {
 
 	public static function deactivate() {
 		SC_Guard::unschedule();
+		SC_Report::unschedule();
 		// Nothing destructive: keys and settings stay so reactivation just works.
 	}
 
