@@ -125,11 +125,13 @@ class SC_Undo {
 			case 'add_redirect':
 			case 'delete_redirect':
 				return array( 'sc_redirects' );
+			// @pro-start
 			case 'save_code_snippet':
 			case 'delete_code_snippet':
 				return array( 'sc_snippets' );
 			case 'maintenance_mode':
 				return array( 'sc_settings', 'sc_maintenance_message' );
+			// @pro-end
 		}
 		return array();
 	}

@@ -336,6 +336,7 @@ class SC_Guard {
 		return (bool) wp_mail( self::alert_email(), "[Site Commander] $count security check finding" . ( 1 === $count ? '' : 's' ) . " on $site", $body );
 	}
 
+	// @pro-start
 	/** Reinstall the current WordPress version, then check again. */
 	public static function repair() {
 		$res    = SC_Tools_Dev::reinstall_core( array() );
@@ -343,6 +344,7 @@ class SC_Guard {
 		$res['remaining_issues'] = count( $report['issues'] );
 		return $res;
 	}
+	// @pro-end
 
 	public static function register_tools() {
 		$t = 'SC_Tools';

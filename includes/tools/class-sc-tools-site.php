@@ -73,6 +73,7 @@ class SC_Tools_Site {
 			'callback'    => array( __CLASS__, 'get_settings' ),
 		) );
 
+		// @pro-start
 		$t::add( 'update_settings', array(
 			'group'       => 'site',
 			'description' => 'Change WordPress settings: site title, tagline, timezone, homepage (show_on_front=page + page_on_front), posts page, search engine visibility (blog_public), permalinks, comments, image sizes, etc. Pass {"option": value}.',
@@ -81,6 +82,7 @@ class SC_Tools_Site {
 			'write'       => true,
 			'callback'    => array( __CLASS__, 'update_settings' ),
 		) );
+		// @pro-end
 
 		$t::add( 'list_plugins', array(
 			'group'       => 'site',
@@ -88,6 +90,7 @@ class SC_Tools_Site {
 			'callback'    => array( __CLASS__, 'list_plugins' ),
 		) );
 
+		// @pro-start
 		$t::add( 'install_plugin', array(
 			'group'       => 'site',
 			'description' => 'Install a plugin from WordPress.org by slug (e.g. "contact-form-7") or from a .zip URL, optionally activating it.',
@@ -100,7 +103,9 @@ class SC_Tools_Site {
 			'requires'    => 'allow_extensions',
 			'callback'    => array( __CLASS__, 'install_plugin' ),
 		) );
+		// @pro-end
 
+		// @pro-start
 		$t::add( 'toggle_plugin', array(
 			'group'       => 'site',
 			'description' => 'Activate or deactivate an installed plugin.',
@@ -114,7 +119,9 @@ class SC_Tools_Site {
 			'requires'    => 'allow_extensions',
 			'callback'    => array( __CLASS__, 'toggle_plugin' ),
 		) );
+		// @pro-end
 
+		// @pro-start
 		$t::add( 'delete_plugin', array(
 			'group'       => 'site',
 			'description' => 'Permanently delete an installed plugin that is NOT active (files and its uninstall routine are removed). Active plugins must be deactivated first with toggle_plugin.',
@@ -127,6 +134,7 @@ class SC_Tools_Site {
 			'requires'    => 'allow_extensions',
 			'callback'    => array( __CLASS__, 'delete_plugin' ),
 		) );
+		// @pro-end
 
 		$t::add( 'fetch_page', array(
 			'group'       => 'site',
@@ -228,6 +236,7 @@ class SC_Tools_Site {
 		return $out;
 	}
 
+	// @pro-start
 	public static function update_settings( $a ) {
 		$set     = SC_Tools::arr( $a, 'settings' );
 		$allowed = self::editable_settings();
@@ -257,6 +266,7 @@ class SC_Tools_Site {
 		}
 		return array( 'message' => 'Updated ' . implode( ', ', array_keys( $done ) ) . '.', 'settings' => $done );
 	}
+	// @pro-end
 
 	public static function list_plugins() {
 		require_once ABSPATH . 'wp-admin/includes/plugin.php';
@@ -274,6 +284,7 @@ class SC_Tools_Site {
 		return $out;
 	}
 
+	// @pro-start
 	public static function install_plugin( $a ) {
 		SC_Tools_Design::upgrader_includes();
 		$src = SC_Tools::str( $a, 'zip_url' );
@@ -303,7 +314,9 @@ class SC_Tools_Site {
 		}
 		return array( 'message' => $msg, 'plugin' => $file );
 	}
+	// @pro-end
 
+	// @pro-start
 	public static function toggle_plugin( $a ) {
 		require_once ABSPATH . 'wp-admin/includes/plugin.php';
 		$file = (string) $a['plugin'];
@@ -328,7 +341,9 @@ class SC_Tools_Site {
 		deactivate_plugins( $file );
 		return array( 'message' => "Deactivated $file." );
 	}
+	// @pro-end
 
+	// @pro-start
 	public static function delete_plugin( $a ) {
 		require_once ABSPATH . 'wp-admin/includes/plugin.php';
 		require_once ABSPATH . 'wp-admin/includes/file.php';
@@ -352,6 +367,7 @@ class SC_Tools_Site {
 		}
 		return array( 'message' => "Deleted plugin $file." );
 	}
+	// @pro-end
 
 	public static function fetch_page( $a ) {
 		$url = SC_Tools::str( $a, 'url', home_url( '/' ) );

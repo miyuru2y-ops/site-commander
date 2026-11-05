@@ -22,6 +22,7 @@ class SC_Tools_Design {
 			'callback'    => array( __CLASS__, 'list_themes' ),
 		) );
 
+		// @pro-start
 		$t::add( 'activate_theme', array(
 			'group'       => 'design',
 			'description' => 'Switch the active theme. This changes the whole site design — confirm with the user first.',
@@ -31,7 +32,9 @@ class SC_Tools_Design {
 			'destructive' => true,
 			'callback'    => array( __CLASS__, 'activate_theme' ),
 		) );
+		// @pro-end
 
+		// @pro-start
 		$t::add( 'install_theme', array(
 			'group'       => 'design',
 			'description' => 'Install a theme from WordPress.org by slug (e.g. "astra", "kadence", "twentytwentyfive") or from a .zip URL. Does not activate it.',
@@ -43,7 +46,9 @@ class SC_Tools_Design {
 			'requires'    => 'allow_extensions',
 			'callback'    => array( __CLASS__, 'install_theme' ),
 		) );
+		// @pro-end
 
+		// @pro-start
 		$t::add( 'delete_theme', array(
 			'group'       => 'design',
 			'description' => 'Permanently delete an installed theme that is not active. The active theme, and the parent of the active child theme, cannot be deleted.',
@@ -54,7 +59,9 @@ class SC_Tools_Design {
 			'requires'    => 'allow_extensions',
 			'callback'    => array( __CLASS__, 'delete_theme' ),
 		) );
+		// @pro-end
 
+		// @pro-start
 		$t::add( 'create_child_theme', array(
 			'group'       => 'design',
 			'description' => 'Create a child theme of the active (or given) theme so code edits survive theme updates. Optionally activate it (theme settings are copied).',
@@ -67,13 +74,17 @@ class SC_Tools_Design {
 			'requires'    => 'allow_theme_files',
 			'callback'    => array( __CLASS__, 'create_child_theme' ),
 		) );
+		// @pro-end
 
+		// @pro-start
 		$t::add( 'get_custom_css', array(
 			'group'       => 'design',
 			'description' => 'Read the site\'s Additional CSS (Customizer / Site Editor custom CSS) for the active theme.',
 			'callback'    => array( __CLASS__, 'get_custom_css' ),
 		) );
+		// @pro-end
 
+		// @pro-start
 		$t::add( 'set_custom_css', array(
 			'group'       => 'design',
 			'description' => 'Change the site design with CSS. Saved as Additional CSS (survives theme updates, keeps revisions). mode "append" adds to existing CSS, "replace" overwrites it.',
@@ -85,6 +96,7 @@ class SC_Tools_Design {
 			'write'       => true,
 			'callback'    => array( __CLASS__, 'set_custom_css' ),
 		) );
+		// @pro-end
 
 		$t::add( 'get_theme_mods', array(
 			'group'       => 'design',
@@ -121,6 +133,7 @@ class SC_Tools_Design {
 			'callback'    => array( __CLASS__, 'get_global_styles' ),
 		) );
 
+		// @pro-start
 		$t::add( 'update_global_styles', array(
 			'group'       => 'design',
 			'description' => 'Block themes: change site-wide design (same as Appearance > Editor > Styles). Pass theme.json-shaped "styles" and/or "settings"; deep-merged into the saved overrides. Example: {"styles":{"color":{"background":"#fff","text":"#111"},"elements":{"link":{"color":{"text":"#0a58ca"}}},"typography":{"fontFamily":"var(--wp--preset--font-family--inter)"}}}. reset=true clears all overrides.',
@@ -132,6 +145,7 @@ class SC_Tools_Design {
 			'write'       => true,
 			'callback'    => array( __CLASS__, 'update_global_styles' ),
 		) );
+		// @pro-end
 
 		$t::add( 'list_templates', array(
 			'group'       => 'design',
@@ -189,6 +203,7 @@ class SC_Tools_Design {
 			'callback'    => array( __CLASS__, 'list_block_patterns' ),
 		) );
 
+		// @pro-start
 		$t::add( 'list_theme_files', array(
 			'group'       => 'design',
 			'description' => 'List files in a theme folder (default: active theme).',
@@ -198,7 +213,9 @@ class SC_Tools_Design {
 			),
 			'callback'    => array( __CLASS__, 'list_theme_files' ),
 		) );
+		// @pro-end
 
+		// @pro-start
 		$t::add( 'read_theme_file', array(
 			'group'       => 'design',
 			'description' => 'Read a theme file (style.css, functions.php, theme.json, templates/*.html, etc.).',
@@ -209,7 +226,9 @@ class SC_Tools_Design {
 			'required'    => array( 'path' ),
 			'callback'    => array( __CLASS__, 'read_theme_file' ),
 		) );
+		// @pro-end
 
+		// @pro-start
 		$t::add( 'write_theme_file', array(
 			'group'       => 'design',
 			'description' => 'Create or overwrite a theme file. A backup is saved first. PHP files are syntax-checked and need "Allow editing PHP theme files". Prefer a child theme: parent theme edits are lost on update.',
@@ -223,14 +242,18 @@ class SC_Tools_Design {
 			'requires'    => 'allow_theme_files',
 			'callback'    => array( __CLASS__, 'write_theme_file' ),
 		) );
+		// @pro-end
 
+		// @pro-start
 		$t::add( 'list_file_backups', array(
 			'group'       => 'design',
 			'description' => 'List backups made before theme file edits.',
 			'properties'  => array( 'theme' => $t::p( 'string', 'Theme folder. Default active theme.' ) ),
 			'callback'    => array( __CLASS__, 'list_file_backups' ),
 		) );
+		// @pro-end
 
+		// @pro-start
 		$t::add( 'restore_file_backup', array(
 			'group'       => 'design',
 			'description' => 'Restore a theme file from a backup (undo an edit).',
@@ -240,6 +263,7 @@ class SC_Tools_Design {
 			'requires'    => 'allow_theme_files',
 			'callback'    => array( __CLASS__, 'restore_file_backup' ),
 		) );
+		// @pro-end
 
 		$t::add( 'list_menus', array(
 			'group'       => 'design',
@@ -334,6 +358,7 @@ class SC_Tools_Design {
 		return $out;
 	}
 
+	// @pro-start
 	public static function activate_theme( $a ) {
 		$slug  = (string) $a['stylesheet'];
 		$theme = wp_get_theme( $slug );
@@ -346,7 +371,9 @@ class SC_Tools_Design {
 		switch_theme( $slug );
 		return array( 'message' => 'Activated theme ' . $theme->get( 'Name' ) . '.' );
 	}
+	// @pro-end
 
+	// @pro-start
 	public static function upgrader_includes() {
 		require_once ABSPATH . 'wp-admin/includes/file.php';
 		require_once ABSPATH . 'wp-admin/includes/misc.php';
@@ -359,7 +386,9 @@ class SC_Tools_Design {
 			SC_Tools::fail( 'WordPress cannot write files directly on this server (FTP credentials needed), so installs and updates must be done in wp-admin.' );
 		}
 	}
+	// @pro-end
 
+	// @pro-start
 	public static function install_theme( $a ) {
 		self::upgrader_includes();
 		$src = SC_Tools::str( $a, 'zip_url' );
@@ -384,7 +413,9 @@ class SC_Tools_Design {
 		$theme = $up->theme_info();
 		return array( 'message' => 'Installed theme ' . ( $theme ? $theme->get( 'Name' ) : '' ) . '. Use activate_theme to switch.', 'stylesheet' => $theme ? $theme->get_stylesheet() : null );
 	}
+	// @pro-end
 
+	// @pro-start
 	public static function delete_theme( $a ) {
 		self::upgrader_includes();
 		require_once ABSPATH . 'wp-admin/includes/theme.php';
@@ -408,7 +439,9 @@ class SC_Tools_Design {
 		}
 		return array( 'message' => "Deleted theme $slug." );
 	}
+	// @pro-end
 
+	// @pro-start
 	public static function create_child_theme( $a ) {
 		$parent_slug = SC_Tools::str( $a, 'parent', get_template() );
 		$parent      = wp_get_theme( $parent_slug );
@@ -447,13 +480,17 @@ class SC_Tools_Design {
 		}
 		return array( 'message' => $msg, 'stylesheet' => $slug );
 	}
+	// @pro-end
 
 	/* ------------------------------ CSS & mods ---------------------------- */
 
+	// @pro-start
 	public static function get_custom_css() {
 		return array( 'theme' => get_stylesheet(), 'css' => wp_get_custom_css() );
 	}
+	// @pro-end
 
+	// @pro-start
 	public static function set_custom_css( $a ) {
 		$css  = (string) $a['css'];
 		$mode = SC_Tools::str( $a, 'mode', 'append' );
@@ -468,6 +505,7 @@ class SC_Tools_Design {
 		SC_Tools_Dev::purge_caches();
 		return array( 'message' => 'Custom CSS ' . ( 'append' === $mode ? 'added' : 'replaced' ) . ' (' . strlen( $css ) . ' chars total).' );
 	}
+	// @pro-end
 
 	public static function get_theme_mods() {
 		$mods = get_theme_mods();
@@ -552,6 +590,7 @@ class SC_Tools_Design {
 		return $out;
 	}
 
+	// @pro-start
 	public static function update_global_styles( $a ) {
 		self::require_block_theme();
 		$post_id = WP_Theme_JSON_Resolver::get_user_global_styles_post_id();
@@ -589,6 +628,7 @@ class SC_Tools_Design {
 		SC_Tools_Dev::purge_caches();
 		return array( 'message' => 'Global styles updated.', 'user_overrides' => $data );
 	}
+	// @pro-end
 
 	/* ------------------------------ templates ----------------------------- */
 
@@ -724,6 +764,7 @@ class SC_Tools_Design {
 
 	/* ------------------------------ theme files --------------------------- */
 
+	// @pro-start
 	private static function theme_root( $a ) {
 		$slug  = SC_Tools::str( $a, 'theme', get_stylesheet() );
 		$theme = wp_get_theme( $slug );
@@ -732,7 +773,9 @@ class SC_Tools_Design {
 		}
 		return array( $slug, realpath( $theme->get_stylesheet_directory() ) );
 	}
+	// @pro-end
 
+	// @pro-start
 	/**
 	 * Resolve a path inside the theme, refusing anything that escapes it.
 	 */
@@ -766,7 +809,9 @@ class SC_Tools_Design {
 		}
 		SC_Tools::fail( 'Path is outside the theme folder.' );
 	}
+	// @pro-end
 
+	// @pro-start
 	public static function list_theme_files( $a ) {
 		list( $slug, $root ) = self::theme_root( $a );
 		$base                = $root;
@@ -788,7 +833,9 @@ class SC_Tools_Design {
 		usort( $files, function ( $x, $y ) { return strcmp( $x['path'], $y['path'] ); } );
 		return array( 'theme' => $slug, 'files' => $files );
 	}
+	// @pro-end
 
+	// @pro-start
 	public static function read_theme_file( $a ) {
 		list( $slug, $root ) = self::theme_root( $a );
 		$file                = self::safe_path( $root, $a['path'], true );
@@ -801,7 +848,9 @@ class SC_Tools_Design {
 		}
 		return array( 'theme' => $slug, 'path' => $a['path'], 'content' => file_get_contents( $file ) ); // phpcs:ignore
 	}
+	// @pro-end
 
+	// @pro-start
 	private static function backup( $slug, $root, $file ) {
 		if ( ! file_exists( $file ) ) {
 			return null;
@@ -813,7 +862,9 @@ class SC_Tools_Design {
 		copy( $file, $dir . '/' . $name );
 		return $name;
 	}
+	// @pro-end
 
+	// @pro-start
 	public static function write_theme_file( $a ) {
 		list( $slug, $root ) = self::theme_root( $a );
 		$file                = self::safe_path( $root, $a['path'], false );
@@ -860,7 +911,9 @@ class SC_Tools_Design {
 		}
 		return array( 'message' => $msg, 'backup' => $backup );
 	}
+	// @pro-end
 
+	// @pro-start
 	public static function list_file_backups( $a ) {
 		list( $slug ) = self::theme_root( $a );
 		$dir          = SC_Plugin::backup_dir() . '/' . $slug;
@@ -873,7 +926,9 @@ class SC_Tools_Design {
 		}
 		return array_reverse( $out );
 	}
+	// @pro-end
 
+	// @pro-start
 	public static function restore_file_backup( $a ) {
 		list( $slug, $root ) = self::theme_root( $a );
 		$name                = basename( (string) $a['backup'] );
@@ -887,6 +942,7 @@ class SC_Tools_Design {
 		SC_Tools_Dev::purge_caches();
 		return array( 'message' => 'Restored ' . str_replace( '__', '/', $m[1] ) . " from $name." );
 	}
+	// @pro-end
 
 	/* -------------------------------- menus ------------------------------- */
 

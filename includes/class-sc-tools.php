@@ -24,9 +24,11 @@ class SC_Tools {
 	 * @param array    $def      group, description, properties, required, write, requires, callback.
 	 */
 	public static function add( $name, array $def ) {
+		// @pro-start
 		if ( class_exists( 'SC_License' ) && SC_License::is_pro_tool( $name ) && isset( $def['description'] ) ) {
 			$def['description'] = '[Pro] ' . $def['description'];
 		}
+		// @pro-end
 		self::$tools[ $name ] = wp_parse_args(
 			$def,
 			array(
@@ -55,7 +57,9 @@ class SC_Tools {
 			SC_Tools_Blocks::register();
 			SC_Tools_Extras::register();
 			SC_Webhooks::register_tools();
+			// @pro-start
 			SC_Hub::register_tools();
+			// @pro-end
 			SC_Report::register_tools();
 			SC_Tools_Design::register();
 			SC_Tools_Site::register();
@@ -83,11 +87,23 @@ class SC_Tools {
 		return array(
 			'content' => 'Posts, pages, custom post types, scheduling, categories and tags',
 			'media'   => 'Media library and file uploads',
+			// @pro-start
 			'design'  => 'Themes, custom CSS, global styles, templates, theme files, menus',
+			// @pro-end
+			// @lite: 'design'  => 'Templates, global styles, theme settings, site identity, menus and widgets',
+			// @pro-start
 			'site'    => 'Site settings, plugins, cache, activity log',
+			// @pro-end
+			// @lite: 'site'    => 'Site information, activity log, undo, approvals, reports',
 			'seo'     => 'SEO audit, meta titles/descriptions, schema, image alt text, redirects, robots.txt',
+			// @pro-start
 			'people'  => 'Comments and users',
+			// @pro-end
+			// @lite: 'people'  => 'Comments and form entries',
+			// @pro-start
 			'dev'     => 'Code snippets, maintenance mode, site health, cron, debug log, database tools, updates',
+			// @pro-end
+			// @lite: 'dev'     => 'Cache, site health, permalinks, export',
 			'commerce'=> 'WooCommerce products and orders',
 		);
 	}
@@ -112,14 +128,18 @@ class SC_Tools {
 	public static function blocked_reason( array $tool ) {
 		if ( $tool['requires'] && ! SC_Plugin::setting( $tool['requires'] ) ) {
 			$labels = array(
+				// @pro-start
 				'allow_theme_files'      => 'Allow editing theme files',
 				'allow_php_edits'        => 'Allow editing PHP theme files',
 				'allow_extensions'       => 'Allow installing/activating plugins and themes',
+				// @pro-end
 				'allow_permanent_delete' => 'Allow permanent deletion',
+				// @pro-start
 				'allow_users'            => 'Allow managing users',
 				'allow_code'             => 'Allow header/footer code snippets',
 				'allow_database'         => 'Allow database search & replace',
 				'allow_updates'          => 'Allow updating core, plugins and themes',
+				// @pro-end
 			);
 			$label = isset( $labels[ $tool['requires'] ] ) ? $labels[ $tool['requires'] ] : $tool['requires'];
 			return sprintf( 'This action is switched off. The site owner can enable "%s" in WordPress under Site Commander settings.', $label );
@@ -147,10 +167,12 @@ class SC_Tools {
 			}
 			return array( 'ok' => false, 'error' => $blocked );
 		}
+		// @pro-start
 		$blocked = SC_License::tool_block( $name );
 		if ( $blocked ) {
 			return array( 'ok' => false, 'error' => $blocked );
 		}
+		// @pro-end
 		foreach ( $tool['required'] as $req ) {
 			$empty_ok = in_array( $req, isset( $tool['allow_empty'] ) ? (array) $tool['allow_empty'] : array(), true );
 			if ( ! array_key_exists( $req, $args ) || ( '' === $args[ $req ] && ! $empty_ok ) || null === $args[ $req ] ) {

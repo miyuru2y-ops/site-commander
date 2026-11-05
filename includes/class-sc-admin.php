@@ -40,9 +40,11 @@ class SC_Admin {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			return;
 		}
+		// @pro-start
 		if ( SC_Plugin::setting( 'maintenance_mode' ) ) {
 			echo '<div class="notice notice-warning"><p><strong>Site Commander:</strong> Maintenance mode is ON — visitors see the maintenance page. <a href="' . esc_url( admin_url( 'admin.php?page=' . self::PAGE . '#permissions' ) ) . '">Turn off</a></p></div>';
 		}
+		// @pro-end
 		$waiting = SC_Approval::count();
 		if ( $waiting && ( ! $screen || 'toplevel_page_' . self::PAGE !== $screen->id ) ) {
 			echo '<div class="notice notice-warning"><p><strong>Site Commander:</strong> ' . (int) $waiting . ' AI change(s) are waiting for your approval. <a href="' . esc_url( admin_url( 'admin.php?page=' . self::PAGE . '#approvals' ) ) . '">Review</a></p></div>';
@@ -67,9 +69,11 @@ class SC_Admin {
 
 		switch ( $do ) {
 			case 'generate':
+				// @pro-start
 				if ( ! SC_License::can_add_key() ) {
 					self::redirect( 'The Free plan includes 1 AI connection. ' . SC_License::upgrade_note(), 'error' );
 				}
+				// @pro-end
 				$name   = isset( $_POST['key_name'] ) ? sanitize_text_field( wp_unslash( $_POST['key_name'] ) ) : '';
 				$groups = isset( $_POST['key_groups'] ) ? array_map( 'sanitize_key', (array) wp_unslash( $_POST['key_groups'] ) ) : array();
 				list( $key, $rec ) = SC_Auth::create_key( $name, $groups, ! empty( $_POST['key_read_only'] ), self::posted_limits() );
@@ -124,6 +128,7 @@ class SC_Admin {
 				self::redirect( $r['ok'] ? 'Security check finished: no problems found.' : 'Security check finished: ' . count( $r['issues'] ) . ' finding(s). See the Security check section.', $r['ok'] ? 'success' : 'warning' );
 				break;
 
+			// @pro-start
 			case 'guard_repair':
 				try {
 					$r = SC_Guard::repair();
@@ -132,6 +137,7 @@ class SC_Admin {
 					self::redirect( 'Repair failed: ' . $e->getMessage(), 'error' );
 				}
 				break;
+			// @pro-end
 
 			case 'approve':
 			case 'reject':
@@ -166,9 +172,11 @@ class SC_Admin {
 				break;
 
 			case 'webhook_add':
+				// @pro-start
 				if ( ! SC_License::is_pro() ) {
 					self::redirect( 'Webhooks are a Pro feature. ' . SC_License::upgrade_note(), 'error' );
 				}
+				// @pro-end
 				try {
 					$url    = isset( $_POST['webhook_url'] ) ? esc_url_raw( wp_unslash( $_POST['webhook_url'] ) ) : '';
 					$events = isset( $_POST['webhook_events'] ) ? array_map( 'sanitize_key', (array) wp_unslash( $_POST['webhook_events'] ) ) : array();
@@ -190,6 +198,7 @@ class SC_Admin {
 				self::redirect( ! $r ? 'Webhook not found.' : ( is_wp_error( $r ) ? 'Test failed: ' . $r->get_error_message() : 'Test sent, the URL answered HTTP ' . wp_remote_retrieve_response_code( $r ) . '.' ), ( $r && ! is_wp_error( $r ) ) ? 'success' : 'error' );
 				break;
 
+			// @pro-start
 			case 'site_add':
 				if ( ! SC_License::is_pro() ) {
 					self::redirect( 'Client sites are a Pro feature. ' . SC_License::upgrade_note(), 'error' );
@@ -205,11 +214,14 @@ class SC_Admin {
 					self::redirect( $e->getMessage(), 'error' );
 				}
 				break;
+			// @pro-end
 
+			// @pro-start
 			case 'site_remove':
 				SC_Hub::remove( isset( $_POST['site_id'] ) ? sanitize_text_field( wp_unslash( $_POST['site_id'] ) ) : '' );
 				self::redirect( 'Client site removed.', 'warning' );
 				break;
+			// @pro-end
 
 			case 'report_settings':
 				$mail = isset( $_POST['report_email'] ) ? sanitize_email( wp_unslash( $_POST['report_email'] ) ) : '';
@@ -456,16 +468,22 @@ class SC_Admin {
 					<div class="sc-grid">
 						<?php
 						self::toggle( 'enabled', 'AI access enabled', 'Master switch for all connections.', $s );
+						// @pro-start
 						self::toggle( 'allow_theme_files', 'Edit theme files', 'CSS, JS, HTML, JSON in themes (backed up first).', $s );
 						self::toggle( 'allow_php_edits', 'Edit PHP theme files', 'Syntax-checked, backed up, auto-rolled back if the site breaks.', $s, true );
 						self::toggle( 'allow_extensions', 'Install / switch plugins & themes', 'Install from WordPress.org, activate, deactivate.', $s, true );
 						self::toggle( 'allow_updates', 'Run updates', 'Update core, plugins, themes, translations.', $s );
+						// @pro-end
 						self::toggle( 'allow_permanent_delete', 'Permanent deletion', 'Skip the trash; delete media files.', $s, true );
+						// @pro-start
 						self::toggle( 'allow_users', 'Manage users', 'Create users, change non-admin roles and profiles.', $s, true );
 						self::toggle( 'allow_code', 'Header / footer code', 'Add analytics, pixels, custom scripts to every page.', $s, true );
 						self::toggle( 'allow_database', 'Database tools', 'Database search & replace, edit any plugin option.', $s, true );
+						// @pro-end
 						self::toggle( 'log_404', 'Record 404 errors', 'So AI can find broken URLs and add redirects.', $s );
+						// @pro-start
 						self::toggle( 'maintenance_mode', 'Maintenance mode', 'Visitors see a "back soon" page; admins see the site.', $s );
+						// @pro-end
 						?>
 					</div>
 					<p style="margin-top:16px">
@@ -491,6 +509,7 @@ class SC_Admin {
 				</form>
 			</div>
 
+			<?php // @pro-start ?>
 			<div class="sc-card" id="plan">
 				<h2>3. Your plan</h2>
 				<?php $counts = SC_License::counts(); ?>
@@ -510,6 +529,8 @@ class SC_Admin {
 				</p>
 			</div>
 
+			<?php // @pro-end ?>
+			<?php // @lite-card ?>
 			<?php $g = SC_Guard::last_report(); ?>
 			<div class="sc-card" id="guard">
 				<h2>Security check</h2>
@@ -531,9 +552,11 @@ class SC_Admin {
 				<?php endif; ?>
 				<div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0">
 					<?php self::form_open( 'guard_scan' ); ?><button class="button button-primary" type="submit">Run check now</button></form>
+					<?php // @pro-start ?>
 					<?php if ( ! empty( $g['can_repair'] ) ) : ?>
 						<?php self::form_open( 'guard_repair' ); ?><button class="button" type="submit" onclick="return confirm('Re-download and reinstall the current WordPress version? Your content, plugins, themes and wp-config.php are not touched.')">Repair core files</button></form>
 					<?php endif; ?>
+					<?php // @pro-end ?>
 				</div>
 				<?php self::form_open( 'guard_settings' ); ?>
 					<?php self::toggle( 'guard_enabled', 'Daily check and e-mail alert', 'Checks once a day. You get one e-mail when the list of findings changes.', $s ); ?>
@@ -605,7 +628,9 @@ class SC_Admin {
 						</tbody>
 					</table>
 				<?php endif; ?>
+				<?php // @pro-start ?>
 				<?php if ( SC_License::is_pro() ) : ?>
+				<?php // @pro-end ?>
 					<details class="sc-client"><summary>+ Add a webhook</summary>
 						<?php self::form_open( 'webhook_add' ); ?>
 							<p><input type="url" name="webhook_url" class="large-text" placeholder="https://your-n8n.example.com/webhook/..." required></p>
@@ -617,11 +642,14 @@ class SC_Admin {
 							<p><button class="button button-primary">Add webhook</button></p>
 						</form>
 					</details>
+				<?php // @pro-start ?>
 				<?php else : ?>
 					<p><em>Webhooks are a Pro feature.</em></p>
 				<?php endif; ?>
+				<?php // @pro-end ?>
 			</div>
 
+			<?php // @pro-start ?>
 			<?php $sites = SC_Hub::all(); ?>
 			<div class="sc-card" id="clients">
 				<h2>Client sites</h2>
@@ -655,6 +683,7 @@ class SC_Admin {
 				<?php endif; ?>
 			</div>
 
+			<?php // @pro-end ?>
 			<div class="sc-card" id="report">
 				<h2>Activity report</h2>
 				<p class="sc-sub">E-mail a plain summary of what the AI changed — handy for clients and managers.</p>

@@ -13,14 +13,18 @@ if ( ! defined( 'ABSPATH' ) ) {
 class SC_SEO_Frontend {
 
 	public static function init() {
+		// @pro-start
 		add_action( 'template_redirect', array( __CLASS__, 'maintenance' ), 0 );
+		// @pro-end
 		add_action( 'template_redirect', array( __CLASS__, 'redirects' ), 1 );
 		add_action( 'template_redirect', array( __CLASS__, 'log_404' ), 99 );
 		add_filter( 'robots_txt', array( __CLASS__, 'robots_txt' ), 20, 2 );
 		add_action( 'wp_head', array( __CLASS__, 'custom_schema' ), 30 );
+		// @pro-start
 		add_action( 'wp_head', function () { SC_SEO_Frontend::snippets( 'head' ); }, 99 );
 		add_action( 'wp_body_open', function () { SC_SEO_Frontend::snippets( 'body_open' ); }, 1 );
 		add_action( 'wp_footer', function () { SC_SEO_Frontend::snippets( 'footer' ); }, 99 );
+		// @pro-end
 
 		add_action( 'wp', array( __CLASS__, 'maybe_meta' ) );
 	}
@@ -304,6 +308,7 @@ class SC_SEO_Frontend {
 
 	/* ------------------------- snippets & maintenance --------------------- */
 
+	// @pro-start
 	public static function snippets( $location ) {
 		foreach ( (array) get_option( SC_Tools_Dev::SNIPPETS, array() ) as $s ) {
 			if ( ! empty( $s['active'] ) && $location === $s['location'] ) {
@@ -311,7 +316,9 @@ class SC_SEO_Frontend {
 			}
 		}
 	}
+	// @pro-end
 
+	// @pro-start
 	public static function maintenance() {
 		if ( ! SC_Plugin::setting( 'maintenance_mode' ) || current_user_can( 'edit_posts' ) ) {
 			return;
@@ -330,4 +337,5 @@ class SC_SEO_Frontend {
 		echo '<body><main><h1>' . $name . '</h1><p>' . nl2br( esc_html( $msg ) ) . '</p></main></body></html>'; // phpcs:ignore
 		exit;
 	}
+	// @pro-end
 }

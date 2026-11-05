@@ -594,7 +594,9 @@ class SC_Tools_Content {
 		if ( ! post_type_exists( $type ) ) {
 			SC_Tools::fail( "Unknown post type '$type'." );
 		}
+		// @pro-start
 		SC_License::check_create( $type );
+		// @pro-end
 		$d              = self::post_data( $a );
 		$d['post_type'] = $type;
 		if ( empty( $d['post_status'] ) ) {
@@ -604,7 +606,9 @@ class SC_Tools_Content {
 		if ( is_wp_error( $id ) ) {
 			return $id;
 		}
+		// @pro-start
 		SC_License::record_create( $type );
+		// @pro-end
 		self::apply_extras( $id, $a );
 		return self::result( $id, ucfirst( $type ) . " #$id created as " . get_post_status( $id ) . '.' );
 	}
@@ -664,7 +668,9 @@ class SC_Tools_Content {
 
 	public static function duplicate_content( $a ) {
 		$p  = self::find_post( $a );
+		// @pro-start
 		SC_License::check_create( $p->post_type );
+		// @pro-end
 		$id = wp_insert_post(
 			wp_slash(
 				array(
@@ -698,7 +704,9 @@ class SC_Tools_Content {
 				add_post_meta( $id, $k, wp_slash( maybe_unserialize( $v ) ) );
 			}
 		}
+		// @pro-start
 		SC_License::record_create( $p->post_type );
+		// @pro-end
 		return self::result( $id, "Duplicated #{$p->ID} as draft #$id." );
 	}
 

@@ -50,6 +50,7 @@ class SC_Tools_People {
 			'callback'    => array( __CLASS__, 'reply' ),
 		) );
 
+		// @pro-start
 		$t::add( 'list_users', array(
 			'group'       => 'people',
 			'description' => 'List users with roles (no passwords or private data beyond name/email).',
@@ -59,7 +60,9 @@ class SC_Tools_People {
 			),
 			'callback'    => array( __CLASS__, 'list_users' ),
 		) );
+		// @pro-end
 
+		// @pro-start
 		$t::add( 'save_user', array(
 			'group'       => 'people',
 			'description' => 'Create a user (no id; WordPress emails them a link to set their password) or update a user\'s name, bio, website, email or role. Cannot create or modify administrators.',
@@ -78,6 +81,7 @@ class SC_Tools_People {
 			'requires'    => 'allow_users',
 			'callback'    => array( __CLASS__, 'save_user' ),
 		) );
+		// @pro-end
 	}
 
 	public static function list_comments( $a ) {
@@ -151,6 +155,7 @@ class SC_Tools_People {
 		return array( 'message' => "Replied to comment #{$parent->comment_ID}.", 'id' => (int) $id, 'link' => get_comment_link( $id ) );
 	}
 
+	// @pro-start
 	public static function list_users( $a ) {
 		$args = array( 'number' => 200 );
 		if ( $r = SC_Tools::str( $a, 'role' ) ) {
@@ -174,7 +179,9 @@ class SC_Tools_People {
 			get_users( $args )
 		);
 	}
+	// @pro-end
 
+	// @pro-start
 	/** Roles that can take over a site are never handed out through Site Commander. */
 	public static function is_privileged_role( $role ) {
 		$r = get_role( $role );
@@ -189,7 +196,9 @@ class SC_Tools_People {
 		}
 		return 'administrator' === $role;
 	}
+	// @pro-end
 
+	// @pro-start
 	public static function save_user( $a ) {
 		$role = SC_Tools::str( $a, 'role' );
 		if ( $role && ( ! get_role( $role ) || self::is_privileged_role( $role ) ) ) {
@@ -249,4 +258,5 @@ class SC_Tools_People {
 		wp_new_user_notification( $new, null, 'user' );
 		return array( 'message' => "Created user $login (#$new) as {$data['role']}. They were emailed a link to set a password.", 'id' => $new );
 	}
+	// @pro-end
 }

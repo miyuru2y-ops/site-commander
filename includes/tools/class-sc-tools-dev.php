@@ -29,12 +29,15 @@ class SC_Tools_Dev {
 			},
 		) );
 
+		// @pro-start
 		$t::add( 'check_updates', array(
 			'group'       => 'dev',
 			'description' => 'Check for available WordPress core, plugin, theme and translation updates.',
 			'callback'    => array( __CLASS__, 'check_updates' ),
 		) );
+		// @pro-end
 
+		// @pro-start
 		$t::add( 'run_updates', array(
 			'group'       => 'dev',
 			'description' => 'Install updates. what: "plugins", "themes", "core", "translations" or "all". Optionally only specific plugin files / theme slugs. The site is checked afterwards.',
@@ -47,7 +50,9 @@ class SC_Tools_Dev {
 			'requires'    => 'allow_updates',
 			'callback'    => array( __CLASS__, 'run_updates' ),
 		) );
+		// @pro-end
 
+		// @pro-start
 		$t::add( 'reinstall_core', array(
 			'group'       => 'dev',
 			'description' => 'Repair WordPress: re-download and reinstall the current WordPress version (same as "Re-install version" in Dashboard > Updates). Restores missing or damaged core files such as index.php. wp-content, themes, plugins and wp-config.php are not touched.',
@@ -55,7 +60,9 @@ class SC_Tools_Dev {
 			'requires'    => 'allow_updates',
 			'callback'    => array( __CLASS__, 'reinstall_core' ),
 		) );
+		// @pro-end
 
+		// @pro-start
 		$t::add( 'maintenance_mode', array(
 			'group'       => 'dev',
 			'description' => 'Turn maintenance mode on/off. Visitors see a "back soon" page (HTTP 503, safe for SEO); logged-in admins still see the site.',
@@ -67,7 +74,9 @@ class SC_Tools_Dev {
 			'write'       => true,
 			'callback'    => array( __CLASS__, 'maintenance' ),
 		) );
+		// @pro-end
 
+		// @pro-start
 		$t::add( 'list_code_snippets', array(
 			'group'       => 'dev',
 			'description' => 'List header/footer code snippets (analytics, tracking pixels, verification tags, custom scripts/styles).',
@@ -75,7 +84,9 @@ class SC_Tools_Dev {
 				return array_values( get_option( SC_Tools_Dev::SNIPPETS, array() ) );
 			},
 		) );
+		// @pro-end
 
+		// @pro-start
 		$t::add( 'save_code_snippet', array(
 			'group'       => 'dev',
 			'description' => 'Add or update a code snippet printed on every page: Google Analytics/Tag Manager, Search Console verification meta, Facebook pixel, chat widgets, custom <script>/<style>. location: head, body_open or footer.',
@@ -91,7 +102,9 @@ class SC_Tools_Dev {
 			'requires'    => 'allow_code',
 			'callback'    => array( __CLASS__, 'save_snippet' ),
 		) );
+		// @pro-end
 
+		// @pro-start
 		$t::add( 'delete_code_snippet', array(
 			'group'       => 'dev',
 			'description' => 'Remove a code snippet.',
@@ -110,6 +123,7 @@ class SC_Tools_Dev {
 				return array( 'message' => "Snippet {$a['id']} removed." );
 			},
 		) );
+		// @pro-end
 
 		$t::add( 'site_health', array(
 			'group'       => 'dev',
@@ -117,19 +131,24 @@ class SC_Tools_Dev {
 			'callback'    => array( __CLASS__, 'site_health' ),
 		) );
 
+		// @pro-start
 		$t::add( 'read_debug_log', array(
 			'group'       => 'dev',
 			'description' => 'Read the last lines of wp-content/debug.log (PHP errors and warnings) to find what is broken.',
 			'properties'  => array( 'lines' => $t::p( 'integer', 'Default 100, max 1000.' ) ),
 			'callback'    => array( __CLASS__, 'debug_log' ),
 		) );
+		// @pro-end
 
+		// @pro-start
 		$t::add( 'list_cron', array(
 			'group'       => 'dev',
 			'description' => 'List scheduled background tasks (WP-Cron), including scheduled post publishing.',
 			'callback'    => array( __CLASS__, 'list_cron' ),
 		) );
+		// @pro-end
 
+		// @pro-start
 		$t::add( 'run_cron_event', array(
 			'group'       => 'dev',
 			'description' => 'Run a scheduled WP-Cron hook now (e.g. a missed scheduled post: "publish_future_post").',
@@ -138,6 +157,7 @@ class SC_Tools_Dev {
 			'write'       => true,
 			'callback'    => array( __CLASS__, 'run_cron' ),
 		) );
+		// @pro-end
 
 		$t::add( 'publish_missed_schedules', array(
 			'group'       => 'dev',
@@ -146,6 +166,7 @@ class SC_Tools_Dev {
 			'callback'    => array( __CLASS__, 'missed_schedules' ),
 		) );
 
+		// @pro-start
 		$t::add( 'get_option', array(
 			'group'       => 'dev',
 			'description' => 'Read any WordPress option by name (plugin settings etc.). Secrets such as passwords and API keys are never returned. Use search to find option names.',
@@ -155,7 +176,9 @@ class SC_Tools_Dev {
 			),
 			'callback'    => array( __CLASS__, 'get_option' ),
 		) );
+		// @pro-end
 
+		// @pro-start
 		$t::add( 'update_option', array(
 			'group'       => 'dev',
 			'description' => 'Change any WordPress option (e.g. a plugin\'s settings). Powerful: read it with get_option first and change only what is needed. Core security options and secrets cannot be changed.',
@@ -169,7 +192,9 @@ class SC_Tools_Dev {
 			'requires'    => 'allow_database',
 			'callback'    => array( __CLASS__, 'update_option' ),
 		) );
+		// @pro-end
 
+		// @pro-start
 		$t::add( 'database_search_replace', array(
 			'group'       => 'dev',
 			'description' => 'Search & replace across the database (content, custom fields, options, comments) safely, including serialized data — e.g. move from http:// to https:// or change domain. Dry run by default.',
@@ -185,6 +210,7 @@ class SC_Tools_Dev {
 			'requires'    => 'allow_database',
 			'callback'    => array( __CLASS__, 'db_replace' ),
 		) );
+		// @pro-end
 
 		$t::add( 'flush_permalinks', array(
 			'group'       => 'dev',
@@ -245,6 +271,7 @@ class SC_Tools_Dev {
 		return $done;
 	}
 
+	// @pro-start
 	/**
 	 * Quick loopback request to see if the front end still works.
 	 */
@@ -263,7 +290,9 @@ class SC_Tools_Dev {
 		}
 		return array( 'ok' => true, 'detail' => "homepage OK (HTTP $code)" );
 	}
+	// @pro-end
 
+	// @pro-start
 	public static function check_updates() {
 		require_once ABSPATH . 'wp-admin/includes/update.php';
 		require_once ABSPATH . 'wp-admin/includes/plugin.php';
@@ -286,7 +315,9 @@ class SC_Tools_Dev {
 			'translations' => count( (array) wp_get_translation_updates() ),
 		);
 	}
+	// @pro-end
 
+	// @pro-start
 	public static function run_updates( $a ) {
 		SC_Tools_Design::upgrader_includes();
 		require_once ABSPATH . 'wp-admin/includes/admin.php';
@@ -345,7 +376,9 @@ class SC_Tools_Dev {
 		$out['message']    = 'Updates finished. ' . $check['detail'] . '.';
 		return $out;
 	}
+	// @pro-end
 
+	// @pro-start
 	public static function reinstall_core( $a ) {
 		SC_Tools_Design::upgrader_includes();
 		require_once ABSPATH . 'wp-admin/includes/admin.php';
@@ -373,7 +406,9 @@ class SC_Tools_Dev {
 			'site_check'     => $check['detail'],
 		);
 	}
+	// @pro-end
 
+	// @pro-start
 	public static function maintenance( $a ) {
 		$on      = SC_Tools::bool( $a, 'enabled' );
 		$changes = array( 'maintenance_mode' => $on ? 1 : 0 );
@@ -384,7 +419,9 @@ class SC_Tools_Dev {
 		self::purge_caches();
 		return array( 'message' => 'Maintenance mode ' . ( $on ? 'ON — visitors see the maintenance page.' : 'OFF — site is live.' ) );
 	}
+	// @pro-end
 
+	// @pro-start
 	public static function save_snippet( $a ) {
 		$all = get_option( self::SNIPPETS, array() );
 		$id  = SC_Tools::str( $a, 'id' );
@@ -407,6 +444,7 @@ class SC_Tools_Dev {
 		self::purge_caches();
 		return array( 'message' => "Snippet \"{$all[$id]['name']}\" saved ({$all[$id]['location']}).", 'id' => $id );
 	}
+	// @pro-end
 
 	public static function site_health() {
 		require_once ABSPATH . 'wp-admin/includes/admin.php';
@@ -443,6 +481,7 @@ class SC_Tools_Dev {
 		return $out;
 	}
 
+	// @pro-start
 	public static function debug_log( $a ) {
 		$file = WP_CONTENT_DIR . '/debug.log';
 		if ( defined( 'WP_DEBUG_LOG' ) && is_string( WP_DEBUG_LOG ) ) {
@@ -460,7 +499,9 @@ class SC_Tools_Dev {
 		$lines = array_slice( explode( "\n", trim( (string) $data ) ), -$n );
 		return array( 'file_kb' => round( $size / 1024 ), 'lines' => $lines );
 	}
+	// @pro-end
 
+	// @pro-start
 	public static function list_cron() {
 		$out = array();
 		foreach ( (array) _get_cron_array() as $ts => $hooks ) {
@@ -478,7 +519,9 @@ class SC_Tools_Dev {
 		}
 		return array( 'wp_cron_disabled' => defined( 'DISABLE_WP_CRON' ) && DISABLE_WP_CRON, 'events' => array_slice( $out, 0, 200 ) );
 	}
+	// @pro-end
 
+	// @pro-start
 	public static function run_cron( $a ) {
 		$hook = (string) $a['hook'];
 		$ran  = 0;
@@ -495,6 +538,7 @@ class SC_Tools_Dev {
 		}
 		return array( 'message' => "Ran $hook ($ran events)." );
 	}
+	// @pro-end
 
 	public static function missed_schedules() {
 		global $wpdb;
@@ -505,6 +549,7 @@ class SC_Tools_Dev {
 		return array( 'message' => count( $ids ) . ' missed posts published.', 'ids' => array_map( 'intval', $ids ) );
 	}
 
+	// @pro-start
 	public static function get_option( $a ) {
 		global $wpdb;
 		if ( $s = SC_Tools::str( $a, 'search' ) ) {
@@ -521,7 +566,9 @@ class SC_Tools_Dev {
 		$v = get_option( $name, null );
 		return array( 'name' => $name, 'exists' => null !== $v, 'value' => self::redact( $v ) );
 	}
+	// @pro-end
 
+	// @pro-start
 	private static function redact( $v ) {
 		if ( is_array( $v ) ) {
 			foreach ( $v as $k => $x ) {
@@ -532,7 +579,9 @@ class SC_Tools_Dev {
 		}
 		return $v;
 	}
+	// @pro-end
 
+	// @pro-start
 	public static function update_option( $a ) {
 		$name    = (string) $a['name'];
 		$blocked = array( 'siteurl', 'home', 'active_plugins', 'template', 'stylesheet', 'users_can_register', 'default_role', 'admin_email', 'db_version', 'cron', 'rewrite_rules', 'recently_activated', 'auto_core_update_notified' );
@@ -548,7 +597,9 @@ class SC_Tools_Dev {
 		self::purge_caches();
 		return array( 'message' => "Option '$name' updated." );
 	}
+	// @pro-end
 
+	// @pro-start
 	/**
 	 * Serialization-safe replace.
 	 */
@@ -572,7 +623,9 @@ class SC_Tools_Dev {
 		}
 		return $data;
 	}
+	// @pro-end
 
+	// @pro-start
 	public static function db_replace( $a ) {
 		global $wpdb;
 		$s   = (string) $a['search'];
@@ -620,6 +673,7 @@ class SC_Tools_Dev {
 		}
 		return array( 'message' => ( $dry ? 'Dry run: would replace ' : 'Replaced ' ) . array_sum( $report ) . ' occurrences.', 'dry_run' => $dry, 'by_column' => $report );
 	}
+	// @pro-end
 
 	public static function export( $a ) {
 		$types = SC_Tools::arr( $a, 'post_types' );
