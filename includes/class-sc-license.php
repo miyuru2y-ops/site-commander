@@ -88,7 +88,7 @@ class SC_License {
 			'install_plugin', 'toggle_plugin', 'delete_plugin', 'update_settings', 'get_activity_log',
 			// SEO (basic get/set stays free).
 			'seo_audit', 'bulk_set_seo', 'fix_content_image_alts', 'find_internal_link_opportunities',
-			'find_broken_links', 'list_redirects', 'add_redirect', 'delete_redirect', 'list_404s', 'set_robots_txt',
+			'find_broken_links', 'list_redirects', 'add_redirect', 'delete_redirect', 'list_404s', 'clear_404_log', 'set_robots_txt',
 			// People and commerce.
 			'save_user', 'moderate_comments', 'reply_to_comment', 'list_products', 'save_product', 'list_orders', 'update_order_status',
 			// Dev.

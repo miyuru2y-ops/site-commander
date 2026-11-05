@@ -1,0 +1,23 @@
+/* Site Commander admin screen. */
+.sc-wrap{max-width:1040px}
+.sc-head{display:flex;align-items:center;gap:12px;margin:8px 0 18px}
+.sc-head h1{margin:0;font-size:24px}
+.sc-pill{padding:3px 10px;border-radius:99px;font-size:12px;font-weight:600}
+.sc-on{background:#e7f6ec;color:#116329}.sc-off{background:#fcf0f1;color:#8a2424}
+.sc-card{background:#fff;border:1px solid #dcdcde;border-radius:8px;padding:20px 22px;margin:0 0 18px}
+.sc-card h2{margin:0 0 4px;font-size:17px}.sc-card>p.sc-sub{margin:0 0 16px;color:#50575e}
+.sc-copy{margin:0 0 12px}.sc-copy label{display:block;font-weight:600;margin-bottom:4px}
+.sc-copy-row{display:flex;gap:6px}.sc-copy-row input{flex:1;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px}
+.sc-secret{background:#fffbe6!important;border-color:#dba617!important}
+.sc-keybox{border:2px solid #dba617;background:#fffbea;border-radius:8px;padding:14px 16px;margin:0 0 16px}
+.sc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px}
+.sc-toggle{display:flex;gap:10px;align-items:flex-start;border:1px solid #e0e0e0;border-radius:6px;padding:10px 12px;cursor:pointer}
+.sc-toggle span{display:flex;flex-direction:column;gap:2px}.sc-toggle em{font-style:normal;color:#646970;font-size:12px}
+.sc-danger{border-color:#f0c2c2}
+.sc-client{border:1px solid #e0e0e0;border-radius:6px;margin:0 0 8px;padding:8px 12px}
+.sc-client summary{cursor:pointer;font-weight:600}
+.sc-client pre{background:#1d2327;color:#f0f0f1;padding:12px;border-radius:6px;overflow:auto;font-size:12px;white-space:pre-wrap;word-break:break-all}
+.sc-tools{columns:3 220px;font-size:12px;color:#3c434a}.sc-tools code{font-size:11px}
+.sc-log td,.sc-log th{font-size:12px;vertical-align:top}
+.sc-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+@media (max-width:782px){.sc-copy-row{flex-direction:column}}

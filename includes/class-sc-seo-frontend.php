@@ -155,7 +155,7 @@ class SC_SEO_Frontend {
 	}
 
 	private static function print_ld( $data ) {
-		echo '<script type="application/ld+json">' . wp_json_encode( $data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . "</script>\n"; // phpcs:ignore
+		echo '<script type="application/ld+json">' . wp_json_encode( $data, JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . "</script>\n"; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- JSON with < > & hex-escaped.
 	}
 
 	public static function auto_schema() {
@@ -233,7 +233,7 @@ class SC_SEO_Frontend {
 		if ( empty( $all ) ) {
 			return;
 		}
-		$path = SC_Tools_SEO::norm_path( isset( $_SERVER['REQUEST_URI'] ) ? wp_unslash( $_SERVER['REQUEST_URI'] ) : '/' ); // phpcs:ignore
+		$path = SC_Tools_SEO::norm_path( isset( $_SERVER['REQUEST_URI'] ) ? esc_url_raw( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '/' );
 		$home = SC_Tools_SEO::norm_path( home_url( '/' ) );
 		if ( '/' !== $home && 0 === strpos( $path, $home ) ) {
 			$path = '/' . ltrim( substr( $path, strlen( $home ) - 1 ), '/' );
@@ -262,7 +262,7 @@ class SC_SEO_Frontend {
 		if ( ! is_404() || ! SC_Plugin::setting( 'log_404' ) ) {
 			return;
 		}
-		$raw = isset( $_SERVER['REQUEST_URI'] ) ? wp_unslash( $_SERVER['REQUEST_URI'] ) : ''; // phpcs:ignore
+		$raw = isset( $_SERVER['REQUEST_URI'] ) ? esc_url_raw( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '';
 		if ( preg_match( '#\.(php|env|git|sql|bak|ini|log|ya?ml)(\?|$)|/wp-(admin|includes)/#i', $raw ) ) {
 			return; // Vulnerability scanners, not real visitors.
 		}

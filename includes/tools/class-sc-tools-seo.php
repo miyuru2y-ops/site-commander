@@ -289,14 +289,21 @@ class SC_Tools_SEO {
 		$t::add( 'list_404s', array(
 			'group'       => 'seo',
 			'description' => 'Most-hit "page not found" URLs recorded on the site, with referrers — candidates for redirects.',
-			'properties'  => array( 'clear' => $t::p( 'boolean', 'Clear the log after reading.' ) ),
-			'callback'    => function ( $a ) {
+			'callback'    => function () {
 				$log = get_option( SC_Tools_SEO::LOG_404, array() );
+				$log = is_array( $log ) ? $log : array();
 				uasort( $log, function ( $x, $y ) { return $y['hits'] - $x['hits']; } );
-				if ( SC_Tools::bool( $a, 'clear' ) ) {
-					delete_option( SC_Tools_SEO::LOG_404 );
-				}
 				return array_slice( $log, 0, 100, true );
+			},
+		) );
+
+		$t::add( 'clear_404_log', array(
+			'group'       => 'seo',
+			'description' => 'Empty the "page not found" log (after you have added redirects).',
+			'write'       => true,
+			'callback'    => function () {
+				delete_option( SC_Tools_SEO::LOG_404 );
+				return array( 'message' => '404 log cleared.' );
 			},
 		) );
 
@@ -507,7 +514,7 @@ class SC_Tools_SEO {
 			'issue_counts'   => $stats,
 			'site_issues'    => $site,
 			'page_issues'    => $with,
-			'sitemap'        => SC_Tools_Site::seo_plugin() ? 'Managed by ' . SC_Tools_Site::seo_plugin() : home_url( '/wp-sitemap.xml' ),
+			'sitemap'        => SC_Tools_Site::seo_plugin() ? 'Managed by ' . SC_Tools_Site::seo_plugin() : ( function_exists( 'get_sitemap_url' ) ? get_sitemap_url( 'index' ) : home_url( '/wp-sitemap.xml' ) ),
 			'how_to_fix'     => 'Missing/short descriptions and titles: bulk_set_seo. Images: fix_image_alts then fix_content_image_alts. Headings/thin content/internal links: get_content then update_content. Duplicates: rewrite one of them.',
 		);
 	}

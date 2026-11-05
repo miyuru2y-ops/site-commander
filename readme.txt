@@ -4,7 +4,7 @@ Tags: ai, mcp, claude, chatgpt, seo
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.7.0
+Stable tag: 1.7.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -69,6 +69,10 @@ This plugin uses the Freemius SDK for licensing, optional opt-in usage data and 
 The security check and link checker make HTTP requests to your own site's URLs only.
 
 == Changelog ==
+
+= 1.7.1 =
+* Security: roles that can manage users, plugins, themes or settings can no longer be assigned; Site Commander's own options can't be changed with update_option; read-only keys can no longer clear the 404 log or run the security check.
+* JSON-LD output hex-escapes HTML characters; request URLs are sanitized; admin styles are enqueued.
 
 = 1.7.0 =
 * Undo for most AI changes, from the activity log or with the undo_change tool.

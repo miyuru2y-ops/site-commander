@@ -175,10 +175,25 @@ class SC_Tools_People {
 		);
 	}
 
+	/** Roles that can take over a site are never handed out through Site Commander. */
+	public static function is_privileged_role( $role ) {
+		$r = get_role( $role );
+		if ( ! $r ) {
+			return true;
+		}
+		$caps = array( 'manage_options', 'edit_users', 'create_users', 'promote_users', 'delete_users', 'list_users', 'install_plugins', 'activate_plugins', 'edit_plugins', 'update_plugins', 'delete_plugins', 'install_themes', 'switch_themes', 'edit_themes', 'update_core', 'unfiltered_html', 'unfiltered_upload', 'manage_network', 'import', 'export' );
+		foreach ( $caps as $c ) {
+			if ( ! empty( $r->capabilities[ $c ] ) ) {
+				return true;
+			}
+		}
+		return 'administrator' === $role;
+	}
+
 	public static function save_user( $a ) {
 		$role = SC_Tools::str( $a, 'role' );
-		if ( $role && ( 'administrator' === $role || ! get_role( $role ) ) ) {
-			SC_Tools::fail( "Role '$role' is not allowed or does not exist." );
+		if ( $role && ( ! get_role( $role ) || self::is_privileged_role( $role ) ) ) {
+			SC_Tools::fail( "Role '$role' is not allowed (it can manage users, plugins, themes or settings) or does not exist." );
 		}
 		$data = array();
 		foreach ( array( 'first_name', 'last_name', 'display_name' ) as $k ) {
@@ -224,6 +239,9 @@ class SC_Tools_People {
 		$data['user_login'] = $login;
 		$data['user_pass']  = wp_generate_password( 24 );
 		$data['role']       = $role ? $role : get_option( 'default_role', 'subscriber' );
+		if ( ! get_role( $data['role'] ) || self::is_privileged_role( $data['role'] ) ) {
+			$data['role'] = 'subscriber';
+		}
 		$new                = wp_insert_user( $data );
 		if ( is_wp_error( $new ) ) {
 			return $new;

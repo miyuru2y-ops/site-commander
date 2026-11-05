@@ -536,7 +536,7 @@ class SC_Tools_Dev {
 	public static function update_option( $a ) {
 		$name    = (string) $a['name'];
 		$blocked = array( 'siteurl', 'home', 'active_plugins', 'template', 'stylesheet', 'users_can_register', 'default_role', 'admin_email', 'db_version', 'cron', 'rewrite_rules', 'recently_activated', 'auto_core_update_notified' );
-		if ( in_array( $name, $blocked, true ) || preg_match( self::SECRET_OPTIONS, $name ) || preg_match( '/user_roles$/', $name ) ) {
+		if ( in_array( $name, $blocked, true ) || 0 === strpos( $name, 'sc_' ) || 0 === strpos( $name, 'fs_' ) || preg_match( self::SECRET_OPTIONS, $name ) || preg_match( '/user_roles$/', $name ) ) {
 			SC_Tools::fail( "Option '$name' is protected. Use the dedicated tool (update_settings, activate_theme, toggle_plugin) if one exists." );
 		}
 		$value = $a['value'];

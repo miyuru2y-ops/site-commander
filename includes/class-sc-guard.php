@@ -349,7 +349,8 @@ class SC_Guard {
 		$t::add( 'check_integrity', array(
 			'group'       => 'dev',
 			'description' => 'Security check: compares WordPress core files with the official checksums and looks for missing or changed core files, unknown PHP files in core folders or uploads, odd plugin folders, new administrators and a broken homepage. Returns the findings. If core files are damaged, run reinstall_core to repair them. Runs daily on its own and e-mails the owner when something new appears.',
-			'callback'    => function () {
+			'write'       => true, // Updates the stored report and the administrator baseline.
+				'callback'    => function () {
 				$r = SC_Guard::scan( false );
 				return array(
 					'ok'         => $r['ok'],
