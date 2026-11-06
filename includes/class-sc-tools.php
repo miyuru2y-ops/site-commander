@@ -204,7 +204,12 @@ class SC_Tools {
 
 		try {
 			$snap   = $tool['write'] ? SC_Undo::capture( $name, $args ) : null;
-			$result = call_user_func( $tool['callback'], $args );
+			ob_start(); // Upgraders and some plugins print HTML; keep it out of the JSON response.
+			try {
+				$result = call_user_func( $tool['callback'], $args );
+			} finally {
+				ob_end_clean();
+			}
 			if ( is_wp_error( $result ) ) {
 				throw new SC_Tool_Error( $result->get_error_message() );
 			}

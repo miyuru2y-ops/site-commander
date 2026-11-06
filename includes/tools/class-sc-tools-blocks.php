@@ -37,7 +37,7 @@ class SC_Tools_Blocks {
 				'id'      => $t::p( 'integer', 'Post ID.' ),
 				'path'    => $path,
 				'markup'  => $t::p( 'string', 'New block markup that replaces the block (may contain several blocks).' ),
-				'attrs'   => array( 'type' => 'object', 'description' => 'Attributes to merge into the block comment (e.g. {"level":3}).' ),
+				'attrs'   => array( 'type' => 'object', 'description' => 'Attributes to merge into the block comment, e.g. {"className":"is-style-x"}. The saved HTML is not regenerated, so for changes that affect the markup (like a heading level) pass the full new markup instead.' ),
 				'search'  => $t::p( 'string', 'Text to find inside the block.' ),
 				'replace' => $t::p( 'string', 'Replacement for search.' ),
 			),
