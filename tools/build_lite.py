@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 """
-Build "Site Commander Lite" for WordPress.org from this repository.
+Build "Siteloom" (the free edition) for WordPress.org from this repository.
 
 The Lite edition is fully free: no licensing code, no Freemius SDK, and none of the
 administrative tools (plugin/theme management, updates, code snippets, theme file
 editing, users, database and options tools, client sites). Code for those is wrapped in
 // @pro-start ... // @pro-end in the source and removed here. Names are re-prefixed
-(SC_/sc_ -> SITECO_/siteco_) and the REST namespace becomes site-commander-lite/v1 so
+(SC_/sc_ -> SITELOOM_/siteloom_) and the REST namespace becomes siteloom/v1 so
 Lite and Pro never collide.
 
-Usage: python3 tools/build_lite.py            -> build/site-commander-lite.zip
+Usage: python3 tools/build_lite.py            -> build/siteloom.zip
 """
 import os
 import re
@@ -19,22 +19,21 @@ import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT_DIR = os.path.join(ROOT, 'build')
-SLUG = 'site-commander-lite'
+SLUG = 'siteloom'
 OUT = os.path.join(OUT_DIR, SLUG)
 
 SKIP_DIRS = {'.git', '.github', 'build', 'tools', 'assets', os.path.join('includes', 'freemius')}
 SKIP_FILES = {'README.md', '.gitignore', os.path.join('includes', 'class-sc-hub.php'), os.path.join('includes', 'class-sc-license.php'), 'readme.txt', 'site-commander.php'}
 
 LITE_CARD = '''			<div class="sc-card" id="plan">
-				<h2>3. Site Commander Lite</h2>
-				<p>Everything in this plugin is free to use. Lite works on content, media, SEO, blocks, menus, forms and more, and leaves plugins, themes, updates, users and code to you.</p>
-				<p class="sc-sub">Need an AI that can also install plugins, run updates or manage several client sites? That is a separate plugin, Site Commander Pro, at <a href="https://getsitecommander.com/" target="_blank" rel="noopener">getsitecommander.com</a>.</p>
+				<h2>3. Siteloom</h2>
+				<p>Everything in this plugin is free to use. Siteloom works on content, media, SEO, blocks, menus, forms and more, and leaves plugins, themes, updates, users and code to you.</p>
+				<p class="sc-sub">Need an AI that can also install plugins, run updates or manage several client sites? That is a separate paid plugin from the same author, at <a href="https://getsitecommander.com/" target="_blank" rel="noopener">getsitecommander.com</a>.</p>
 			</div>'''
 
 HEADER = '''<?php
 /**
- * Plugin Name:       Site Commander Lite
- * Plugin URI:        https://getsitecommander.com/
+ * Plugin Name:       Siteloom
  * Description:       Let any AI (Claude, ChatGPT, Cursor, n8n) work on your WordPress content, media and SEO through MCP or a REST API, with a separate key per AI, an activity log, undo and approval.
  * Version:           {version}
  * Requires at least: 6.2
@@ -42,32 +41,32 @@ HEADER = '''<?php
  * Author:            Miyuru Gomes
  * License:           GPL-2.0-or-later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
- * Text Domain:       site-commander-lite
+ * Text Domain:       siteloom
  *
- * @package SiteCommanderLite
+ * @package Siteloom
  */
 '''
 
 UNINSTALL = '''<?php
 /**
- * Removes Site Commander Lite settings when the plugin is deleted. SEO fields saved on posts are kept.
+ * Removes Siteloom settings when the plugin is deleted. SEO fields saved on posts are kept.
  *
- * @package SiteCommanderLite
+ * @package Siteloom
  */
 
 if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 	exit;
 }
 
-foreach ( array( 'siteco_settings', 'siteco_keys', 'siteco_key_hash', 'siteco_key_hint', 'siteco_activity_log', 'siteco_404_log', 'siteco_redirects', 'siteco_robots_extra', 'siteco_home_seo', 'siteco_guard_report', 'siteco_guard_admins', 'siteco_pending', 'siteco_webhooks', 'siteco_key_usage', 'siteco_report_last' ) as $siteco_opt ) {
-	delete_option( $siteco_opt );
+foreach ( array( 'siteloom_settings', 'siteloom_keys', 'siteloom_key_hash', 'siteloom_key_hint', 'siteloom_activity_log', 'siteloom_404_log', 'siteloom_redirects', 'siteloom_robots_extra', 'siteloom_home_seo', 'siteloom_guard_report', 'siteloom_guard_admins', 'siteloom_pending', 'siteloom_webhooks', 'siteloom_key_usage', 'siteloom_report_last' ) as $siteloom_opt ) {
+	delete_option( $siteloom_opt );
 }
-foreach ( (array) get_option( 'siteco_undo_index', array() ) as $siteco_uid ) {
-	delete_option( 'siteco_undo_' . $siteco_uid );
+foreach ( (array) get_option( 'siteloom_undo_index', array() ) as $siteloom_uid ) {
+	delete_option( 'siteloom_undo_' . $siteloom_uid );
 }
-delete_option( 'siteco_undo_index' );
-wp_clear_scheduled_hook( 'siteco_guard_scan' );
-wp_clear_scheduled_hook( 'siteco_report_check' );
+delete_option( 'siteloom_undo_index' );
+wp_clear_scheduled_hook( 'siteloom_guard_scan' );
+wp_clear_scheduled_hook( 'siteloom_report_check' );
 '''
 
 
@@ -96,12 +95,14 @@ def strip_pro(text, path):
 
 
 def rename(text):
-    text = text.replace("'admin_post_sc_action'", "'admin_post_siteco_action'")
-    text = text.replace("'x_sc_key'", "'x_siteco_key'")
-    text = re.sub(r'(?<![A-Za-z0-9_$\\-])SC_', 'SITECO_', text)
-    text = re.sub(r'(?<![A-Za-z0-9_$\\-])sc_', 'siteco_', text)
+    text = text.replace("'admin_post_sc_action'", "'admin_post_siteloom_action'")
+    text = text.replace("'x_sc_key'", "'x_siteloom_key'")
+    text = re.sub(r'(?<![A-Za-z0-9_$\\-])SC_', 'SITELOOM_', text)
+    text = re.sub(r'(?<![A-Za-z0-9_$\\-])sc_', 'siteloom_', text)
     text = re.sub(r'(?<![\w.-])site-commander(?![\w-])', SLUG, text)
-    text = text.replace('@package SiteCommander\n', '@package SiteCommanderLite\n')
+    text = text.replace('@package SiteCommander\n', '@package Siteloom\n')
+    text = text.replace('Site Commander', 'Siteloom').replace('SiteCommander', 'Siteloom')
+    text = text.replace('site-commander-backups', 'siteloom-backups').replace("'site_commander'", "'siteloom'")
     return text
 
 
@@ -125,6 +126,8 @@ def main():
             if f.endswith('.php'):
                 t = rename(strip_pro(open(os.path.join(dirpath, f)).read(), rf))
                 open(dst, 'w').write(t)
+            elif f.endswith('.css'):
+                open(dst, 'w').write(open(os.path.join(dirpath, f)).read().replace('Site Commander', 'Siteloom'))
             else:
                 shutil.copy2(os.path.join(dirpath, f), dst)
 
@@ -146,7 +149,7 @@ def main():
                 continue
             p = os.path.join(dirpath, f)
             t = open(p).read()
-            for needle in ('SC_License', 'SITECO_License', 'sc_fs', 'siteco_fs', 'freemius', 'Freemius', 'SITECO_Hub', '@pro-', 'write_theme_file', 'save_code_snippet', 'install_plugin', 'database_search_replace', 'wp_insert_user'):
+            for needle in ('SC_License', 'SITELOOM_License', 'sc_fs', 'siteloom_fs', 'Site Commander', 'SiteCommander', 'freemius', 'Freemius', 'SITELOOM_Hub', '@pro-', 'write_theme_file', 'save_code_snippet', 'install_plugin', 'database_search_replace', 'wp_insert_user'):
                 if needle in t:
                     bad.append(os.path.relpath(p, OUT) + ': ' + needle)
             r = subprocess.run(['php', '-l', p], capture_output=True, text=True)
