@@ -1,4 +1,4 @@
-=== Siteloom ===
+=== Miyuru AI Content Assistant ===
 Contributors: miyuru2u
 Tags: ai, mcp, claude, chatgpt, seo
 Requires at least: 6.2
@@ -12,7 +12,7 @@ Let any AI (Claude, ChatGPT, Cursor, n8n) work on your WordPress content, media 
 
 == Description ==
 
-Siteloom connects an AI assistant to your WordPress site so it can do content and SEO work for you in plain language: "write a draft about our opening hours", "fix the missing alt text", "add a redirect from the old page".
+Miyuru AI Content Assistant connects an AI assistant to your WordPress site so it can do content and SEO work for you in plain language: "write a draft about our opening hours", "fix the missing alt text", "add a redirect from the old page".
 
 You create a key for each AI on the plugin screen and paste it into the assistant. The plugin offers its tools over MCP (Model Context Protocol), a plain REST API and an OpenAPI description.
 
@@ -28,7 +28,7 @@ You create a key for each AI on the plugin screen and paste it into the assistan
 
 **What it does not do**
 
-Siteloom never installs, activates or updates plugins and themes, never edits theme or plugin files, never adds scripts or custom code to your pages and never creates or changes user accounts. Those stay with you.
+Miyuru AI Content Assistant never installs, activates or updates plugins and themes, never edits theme or plugin files, never adds scripts or custom code to your pages and never creates or changes user accounts. Those stay with you.
 
 **You stay in control**
 
@@ -43,7 +43,7 @@ The AI works through the key you give it, as the administrator you choose on the
 == Installation ==
 
 1. Install and activate the plugin.
-2. Go to Siteloom in the admin menu and add an AI connection.
+2. Go to Miyuru AI Content Assistant in the admin menu and add an AI connection.
 3. Copy the setup text for your AI tool and paste it into the assistant.
 
 == Frequently Asked Questions ==
@@ -54,7 +54,7 @@ Your AI assistant connects directly to your site with your key. The plugin itsel
 
 = Can an AI break my site? =
 
-Siteloom only changes content, media, SEO and similar settings. Changes are logged and most can be undone. With approval mode on, nothing is applied until you approve it.
+Miyuru AI Content Assistant only changes content, media, SEO and similar settings. Changes are logged and most can be undone. With approval mode on, nothing is applied until you approve it.
 
 = Which AIs work? =
 
