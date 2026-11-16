@@ -244,9 +244,9 @@ class SC_Tools_Blocks {
 
 	private static function save( $p, array $blocks, $msg ) {
 		$content = serialize_blocks( $blocks );
-		kses_remove_filters();
+		SC_Plugin::raw_html( true );
 		$r = wp_update_post( wp_slash( array( 'ID' => $p->ID, 'post_content' => $content ) ), true );
-		kses_init_filters();
+		SC_Plugin::raw_html( false );
 		if ( is_wp_error( $r ) ) {
 			SC_Tools::fail( $r->get_error_message() );
 		}
@@ -544,9 +544,9 @@ class SC_Tools_Blocks {
 		if ( ! empty( $a['slug'] ) ) {
 			$data['post_name'] = sanitize_title( $a['slug'] );
 		}
-		kses_remove_filters();
+		SC_Plugin::raw_html( true );
 		$new = wp_insert_post( wp_slash( $data ), true );
-		kses_init_filters();
+		SC_Plugin::raw_html( false );
 		if ( is_wp_error( $new ) ) {
 			SC_Tools::fail( $new->get_error_message() );
 		}
@@ -635,9 +635,9 @@ class SC_Tools_Blocks {
 		if ( ! $done ) {
 			SC_Tools::fail( "\"$anchor\" was not found as plain text in \"{$p->post_title}\" (headings and existing links are skipped)." );
 		}
-		kses_remove_filters();
+		SC_Plugin::raw_html( true );
 		wp_update_post( wp_slash( array( 'ID' => $p->ID, 'post_content' => implode( '', $parts ) ) ) );
-		kses_init_filters();
+		SC_Plugin::raw_html( false );
 		return array( 'message' => "Linked \"$anchor\" to $url in \"{$p->post_title}\" (#{$p->ID}).", 'id' => $p->ID );
 	}
 }

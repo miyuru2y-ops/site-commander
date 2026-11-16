@@ -212,6 +212,7 @@ class SC_Tools_Dev {
 		) );
 		// @pro-end
 
+		// @pro-start
 		$t::add( 'flush_permalinks', array(
 			'group'       => 'dev',
 			'description' => 'Rebuild rewrite rules (fixes 404s on posts/pages after changes to permalinks or custom post types).',
@@ -225,6 +226,7 @@ class SC_Tools_Dev {
 				return array( 'message' => 'Permalinks rebuilt.' . ( file_exists( $ht ) && ! wp_is_writable( $ht ) ? ' Note: .htaccess is not writable, so the rewrite rules could not be saved to it.' : '' ) );
 			},
 		) );
+		// @pro-end
 
 		$t::add( 'export_content', array(
 			'group'       => 'dev',

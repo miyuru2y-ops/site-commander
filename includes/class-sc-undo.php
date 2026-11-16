@@ -249,9 +249,9 @@ class SC_Undo {
 		if ( ! get_post( $id ) ) {
 			return;
 		}
-		kses_remove_filters();
+		SC_Plugin::raw_html( true );
 		wp_update_post( wp_slash( $p ) );
-		kses_init_filters();
+		SC_Plugin::raw_html( false );
 		$now = get_post_meta( $id );
 		foreach ( array_keys( (array) $now ) as $k ) {
 			if ( in_array( $k, array( '_edit_lock', '_edit_last' ), true ) ) {

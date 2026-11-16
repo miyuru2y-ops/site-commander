@@ -4,7 +4,7 @@ Tags: ai, mcp, claude, chatgpt, seo
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.7.2
+Stable tag: 1.7.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -69,6 +69,10 @@ This plugin uses the Freemius SDK for licensing, optional opt-in usage data and 
 The security check and link checker make HTTP requests to your own site's URLs only.
 
 == Changelog ==
+
+= 1.7.3 =
+* activity_report only returns the report; e-mailing it is a separate write tool (send_activity_report) that sends only to the address set in WordPress.
+* The backup folder is created only when it is first needed.
 
 = 1.7.2 =
 * Fix: plugin updates run by an AI could add HTML to the JSON reply. Tool output is now kept clean.

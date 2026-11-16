@@ -101,20 +101,20 @@ class SC_Report {
 		$t = 'SC_Tools';
 		$t::add( 'activity_report', array(
 			'group'       => 'site',
-			'description' => 'Summarise what the AI connections changed in the last N days. With send=true it is e-mailed (to the client report address unless email is given).',
-			'properties'  => array(
-				'days'  => $t::p( 'integer', 'Default 30.' ),
-				'send'  => $t::p( 'boolean', 'E-mail it. Default false (just return it).' ),
-				'email' => $t::p( 'string', 'Recipient. Default: the report address set in WordPress.' ),
-			),
+			'description' => 'Summarise what the AI connections changed in the last N days.',
+			'properties'  => array( 'days' => $t::p( 'integer', 'Default 30.' ) ),
 			'callback'    => function ( $a ) {
-				$days = max( 1, SC_Tools::int( $a, 'days', 30 ) );
-				if ( SC_Tools::bool( $a, 'send' ) ) {
-					$email = SC_Tools::str( $a, 'email', '' );
-					$r     = SC_Report::send( is_email( $email ) ? $email : '', $days );
-					return array( 'message' => $r['sent'] ? "Report e-mailed to {$r['to']}." : 'The e-mail could not be sent (check the site\'s mail setup).' ) + $r;
-				}
-				return SC_Report::build( $days );
+				return SC_Report::build( max( 1, SC_Tools::int( $a, 'days', 30 ) ) );
+			},
+		) );
+		$t::add( 'send_activity_report', array(
+			'group'       => 'site',
+			'description' => 'E-mail the activity report to the report address the site owner set in WordPress (or the admin e-mail).',
+			'properties'  => array( 'days' => $t::p( 'integer', 'Default 30.' ) ),
+			'write'       => true,
+			'callback'    => function ( $a ) {
+				$r = SC_Report::send( '', max( 1, SC_Tools::int( $a, 'days', 30 ) ) );
+				return array( 'message' => $r['sent'] ? "Report e-mailed to {$r['to']}." : 'The e-mail could not be sent (check the site\'s mail setup).' ) + $r;
 			},
 		) );
 	}

@@ -134,6 +134,7 @@ def main():
     # Main file: new header, no Hub, no licensing.
     body = src_main.split('*/', 1)[1]
     body = '\n'.join(l for l in body.split('\n') if 'class-sc-hub.php' not in l and 'class-sc-license.php' not in l)
+    body = body.replace("define( 'SC_VERSION'", "define( 'SC_LITE', true );\ndefine( 'SC_VERSION'", 1)
     main_php = HEADER.format(version=version) + rename(strip_pro(body, 'site-commander.php'))
     open(os.path.join(OUT, SLUG + '.php'), 'w').write(main_php)
     open(os.path.join(OUT, 'uninstall.php'), 'w').write(UNINSTALL)
@@ -149,7 +150,7 @@ def main():
                 continue
             p = os.path.join(dirpath, f)
             t = open(p).read()
-            for needle in ('SC_License', 'MIYURU_License', 'sc_fs', 'miyuru_fs', 'Site Commander', 'SiteCommander', 'freemius', 'Freemius', 'MIYURU_Hub', '@pro-', 'write_theme_file', 'save_code_snippet', 'install_plugin', 'database_search_replace', 'wp_insert_user'):
+            for needle in ('SC_License', 'MIYURU_License', 'sc_fs', 'miyuru_fs', 'Site Commander', 'SiteCommander', 'freemius', 'Freemius', 'MIYURU_Hub', '@pro-', 'write_theme_file', 'save_code_snippet', "'install_plugin'", 'database_search_replace', 'wp_insert_user', 'kses_remove_filters', 'flush_rewrite_rules', 'external_link_ok', 'resize_large_images'):
                 if needle in t:
                     bad.append(os.path.relpath(p, OUT) + ': ' + needle)
             r = subprocess.run(['php', '-l', p], capture_output=True, text=True)

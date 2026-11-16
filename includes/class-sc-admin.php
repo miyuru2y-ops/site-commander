@@ -559,7 +559,7 @@ class SC_Admin {
 					<?php // @pro-end ?>
 				</div>
 				<?php self::form_open( 'guard_settings' ); ?>
-					<?php self::toggle( 'guard_enabled', 'Daily check and e-mail alert', 'Checks once a day. You get one e-mail when the list of findings changes.', $s ); ?>
+					<?php self::toggle( 'guard_enabled', 'Daily check and e-mail alert', 'Once a day, compares your files with the official checksums from WordPress.org (only WordPress and plugin version numbers are sent). You get one e-mail when the list of findings changes.', $s ); ?>
 					<p><label>Send alerts to <input type="email" name="guard_email" value="<?php echo esc_attr( $s['guard_email'] ); ?>" placeholder="<?php echo esc_attr( get_option( 'admin_email' ) ); ?>" class="regular-text"></label></p>
 					<?php submit_button( 'Save', 'secondary', 'submit', false ); ?>
 				</form>

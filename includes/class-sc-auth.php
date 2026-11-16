@@ -60,6 +60,18 @@ class SC_Auth {
 		);
 	}
 
+	/**
+	 * Free edition: requests made with a key never get administrator capabilities, so
+	 * the AI can work on content but cannot manage plugins, themes, users, options or
+	 * post unfiltered HTML, whatever the code path.
+	 */
+	public static function lite_caps( $caps ) {
+		foreach ( array( 'manage_options', 'activate_plugins', 'install_plugins', 'update_plugins', 'delete_plugins', 'edit_plugins', 'install_themes', 'update_themes', 'delete_themes', 'edit_themes', 'switch_themes', 'edit_files', 'update_core', 'create_users', 'edit_users', 'delete_users', 'promote_users', 'list_users', 'remove_users', 'unfiltered_html', 'unfiltered_upload', 'import', 'manage_network', 'manage_sites', 'manage_network_options', 'manage_network_plugins', 'manage_network_themes', 'manage_network_users' ) as $c ) {
+			$caps[ $c ] = false;
+		}
+		return $caps;
+	}
+
 	/** Clean the optional limits posted from the admin form or passed by code. */
 	public static function clean_limits( array $in ) {
 		$out = array(
@@ -266,6 +278,9 @@ class SC_Auth {
 		}
 		if ( ! $user ) {
 			return new WP_Error( 'sc_no_user', 'No administrator account is available to act as.', array( 'status' => 403 ) );
+		}
+		if ( defined( 'SC_LITE' ) ) {
+			add_filter( 'user_has_cap', array( __CLASS__, 'lite_caps' ), 999 );
 		}
 		wp_set_current_user( $user->ID );
 		self::$current  = $rec;

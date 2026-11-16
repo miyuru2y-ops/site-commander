@@ -248,9 +248,11 @@ class SC_Tools_SEO {
 
 		$t::add( 'find_broken_links', array(
 			'group'       => 'seo',
-			'description' => 'Find internal links in post/page content that point to pages that no longer exist. Optionally also checks external links over HTTP (slower).',
+			'description' => 'Find internal links in post/page content that point to pages that no longer exist.' . ( defined( 'SC_LITE' ) ? '' : ' Optionally also checks external links over HTTP (slower).' ),
 			'properties'  => array(
+				// @pro-start
 				'check_external' => $t::p( 'boolean', 'Also test external links. Default false.' ),
+				// @pro-end
 				'limit'          => $t::p( 'integer', 'Max posts to scan, default 200.' ),
 			),
 			'callback'    => array( __CLASS__, 'broken_links' ),
@@ -707,7 +709,10 @@ class SC_Tools_SEO {
 	public static function broken_links( $a ) {
 		$posts    = get_posts( array( 'post_type' => array( 'post', 'page' ), 'post_status' => 'publish', 'posts_per_page' => min( 1000, SC_Tools::int( $a, 'limit', 200 ) ) ) );
 		$host     = wp_parse_url( home_url(), PHP_URL_HOST );
+		// @pro-start
 		$external = SC_Tools::bool( $a, 'check_external' );
+		// @pro-end
+		// @lite: $external = false; // The free edition never requests other sites.
 		$cache    = array();
 		$broken   = array();
 		$redirect = get_option( self::REDIRECTS, array() );
@@ -725,7 +730,10 @@ class SC_Tools_SEO {
 					continue;
 				}
 				if ( ! isset( $cache[ $href ] ) ) {
+					// @pro-start
 					$cache[ $href ] = $internal ? self::internal_link_ok( $href, $redirect ) : self::external_link_ok( $href );
+					// @pro-end
+					// @lite: $cache[ $href ] = self::internal_link_ok( $href, $redirect );
 				}
 				if ( true !== $cache[ $href ] ) {
 					$broken[] = array( 'post_id' => $p->ID, 'post' => $p->post_title, 'link' => $href, 'problem' => $cache[ $href ] );
@@ -753,6 +761,7 @@ class SC_Tools_SEO {
 		return ( $code >= 200 && $code < 400 ) ? true : 'HTTP ' . ( $code ? $code : 'error' );
 	}
 
+	// @pro-start
 	private static function external_link_ok( $href ) {
 		$res = wp_remote_head( $href, array( 'timeout' => 10, 'redirection' => 5 ) );
 		if ( is_wp_error( $res ) ) {
@@ -764,6 +773,7 @@ class SC_Tools_SEO {
 		}
 		return $code < 400 ? true : "HTTP $code";
 	}
+	// @pro-end
 
 	/* ------------------------------ redirects ----------------------------- */
 

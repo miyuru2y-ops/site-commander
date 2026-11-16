@@ -50,6 +50,7 @@ class SC_Tools_Extras {
 			'properties'  => array( 'limit' => $t::p( 'integer', 'How many to return. Default 30.' ) ),
 			'callback'    => array( __CLASS__, 'image_audit' ),
 		) );
+		// @pro-start
 		$t::add( 'resize_large_images', array(
 			'group'       => 'media',
 			'description' => 'Shrink oversized uploaded images in place (originals are backed up first). Default is a dry run that only reports.',
@@ -63,6 +64,7 @@ class SC_Tools_Extras {
 			'write'       => true,
 			'callback'    => array( __CLASS__, 'resize_large_images' ),
 		) );
+		// @pro-end
 		$t::add( 'set_webp_uploads', array(
 			'group'       => 'media',
 			'description' => 'Turn on/off WebP for new uploads: WordPress then creates the resized copies of JPEG/PNG uploads as WebP (smaller files).',
@@ -278,6 +280,7 @@ class SC_Tools_Extras {
 		);
 	}
 
+	// @pro-start
 	public static function resize_large_images( $a ) {
 		$max     = max( 640, SC_Tools::int( $a, 'max_width', 1920 ) );
 		$limit   = min( 50, max( 1, SC_Tools::int( $a, 'limit', 10 ) ) );
@@ -336,6 +339,7 @@ class SC_Tools_Extras {
 		}
 		return array( 'message' => 'Resized ' . count( $done ) . " image(s) to max {$max}px, saved " . round( $saved / 1048576, 2 ) . ' MB. Originals are in uploads/site-commander-backups/images.', 'images' => $done );
 	}
+	// @pro-end
 
 	public static function set_webp_uploads( $a ) {
 		$on = SC_Tools::bool( $a, 'enabled' );

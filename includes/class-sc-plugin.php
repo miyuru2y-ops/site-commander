@@ -31,7 +31,10 @@ class SC_Plugin {
 			'seo_output'             => 'auto', // auto | on | off.
 			'log_404'                => 1,
 			'maintenance_mode'       => 0,
+			// @pro-start
 			'guard_enabled'          => 1, // Daily security check with e-mail alert.
+			// @pro-end
+			// @lite: 'guard_enabled'          => 0, // Off until the owner turns it on: it contacts WordPress.org.
 			'guard_email'            => '', // Empty = site admin e-mail.
 			'webp_uploads'           => 0, // Save resized copies of new JPEG/PNG uploads as WebP.
 			'report_enabled'         => 0, // E-mail an AI activity report.
@@ -74,7 +77,23 @@ class SC_Plugin {
 			$s['run_as_user'] = get_current_user_id();
 		}
 		update_option( self::OPTION, $s, false );
-		self::ensure_backup_dir();
+	}
+
+	/**
+	 * Allow raw HTML for the next save (Pro only). The free edition always keeps
+	 * WordPress' HTML filtering on, so markup is cleaned like any non-admin edit.
+	 */
+	public static function raw_html( $on ) {
+		// @pro-start
+		if ( defined( 'SC_LITE' ) ) {
+			return;
+		}
+		if ( $on ) {
+			kses_remove_filters();
+		} else {
+			kses_init_filters();
+		}
+		// @pro-end
 	}
 
 	public static function deactivate() {
@@ -83,6 +102,7 @@ class SC_Plugin {
 		// Nothing destructive: keys and settings stay so reactivation just works.
 	}
 
+	// @pro-start
 	/**
 	 * Directory for theme-file backups, protected from direct web access.
 	 */
@@ -90,7 +110,9 @@ class SC_Plugin {
 		$up = wp_upload_dir( null, false );
 		return trailingslashit( $up['basedir'] ) . 'site-commander-backups';
 	}
+	// @pro-end
 
+	// @pro-start
 	public static function ensure_backup_dir() {
 		$dir = self::backup_dir();
 		if ( ! is_dir( $dir ) ) {
@@ -104,4 +126,5 @@ class SC_Plugin {
 		}
 		return $dir;
 	}
+	// @pro-end
 }

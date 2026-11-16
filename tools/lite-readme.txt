@@ -20,7 +20,7 @@ You create a key for each AI on the plugin screen and paste it into the assistan
 
 * Write, edit and schedule posts and pages; categories, tags, revisions and custom fields
 * Edit one Gutenberg block at a time, ACF fields, block templates, menus and widgets
-* Upload media and set alt text and featured images; find heavy images and resize them
+* Upload media and set alt text and featured images; find heavy images
 * SEO: titles, meta descriptions, schema, redirects, robots.txt, broken links, internal links, a 404 log (works with Yoast, Rank Math, SEOPress and AIOSEO)
 * Read form entries (Gravity Forms, WPForms, Contact Form 7 with Flamingo, Fluent Forms), moderate and answer comments
 * Create Polylang or WPML translations
@@ -36,9 +36,9 @@ Miyuru AI Content Assistant never installs, activates or updates plugins and the
 * Keys can expire, be limited to IP addresses and to a number of changes per day, and can be revoked at any time
 * Approval mode: changes from a key can wait for your approval before they are applied
 * Every change is recorded in an activity log, and most changes can be undone with one click
-* A daily security check compares WordPress core and WordPress.org plugin files with the official checksums and e-mails you when something changes
+* An optional daily security check (off by default) compares WordPress core and WordPress.org plugin files with the official checksums and e-mails you when something changes
 
-The AI works through the key you give it, as the administrator you choose on the plugin screen. Only give keys to assistants you trust, and revoke a key you no longer use.
+Requests made with a key run as the user you choose on the plugin screen, but with administrator capabilities removed: the AI cannot manage plugins, themes, users or site options, and HTML it saves is filtered by WordPress like any editor's. Only give keys to assistants you trust, and revoke a key you no longer use.
 
 == Installation ==
 
@@ -64,9 +64,9 @@ Any assistant that supports MCP or HTTP tools, including Claude, ChatGPT, Cursor
 
 The plugin calls outside services only in these cases:
 
-* The security check downloads the official checksums of WordPress core (api.wordpress.org) and of active plugins (downloads.wordpress.org) to compare with your files. No site data is sent apart from the WordPress and plugin versions in the request. https://wordpress.org/about/privacy/
+* The security check, only if you turn it on or run it, downloads the official checksums of WordPress core (api.wordpress.org) and of active plugins (downloads.wordpress.org) to compare with your files. No site data is sent apart from the WordPress and plugin versions in the request. https://wordpress.org/about/privacy/
 * Webhooks, if you add them, send the events you choose (for example a new form entry) to the URL you enter.
-* The speed check, link checker and page fetch tools request pages of your own site.
+* The speed check, broken link check and page fetch tools only request pages of your own site.
 
 == Changelog ==
 

@@ -99,7 +99,7 @@ class SC_License {
 			'list_languages', 'get_translations', 'create_translation', 'add_internal_link',
 			'list_forms', 'list_form_entries', 'resize_large_images', 'set_webp_uploads',
 			'list_webhooks', 'add_webhook', 'delete_webhook', 'test_webhook',
-			'list_client_sites', 'client_site_tools', 'run_on_client_site', 'activity_report',
+			'list_client_sites', 'client_site_tools', 'run_on_client_site', 'activity_report', 'send_activity_report',
 		);
 	}
 
