@@ -56,7 +56,9 @@ class SC_Tools {
 			SC_Approval::register_tools();
 			SC_Tools_Blocks::register();
 			SC_Tools_Extras::register();
+			// @pro-start
 			SC_Webhooks::register_tools();
+			// @pro-end
 			// @pro-start
 			SC_Hub::register_tools();
 			// @pro-end

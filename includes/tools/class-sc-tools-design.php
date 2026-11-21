@@ -1094,7 +1094,7 @@ class SC_Tools_Design {
 			$blocks = array();
 		}
 		$num            = max( array_merge( array( 1 ), array_filter( array_keys( $blocks ), 'is_int' ) ) ) + 1;
-		$blocks[ $num ] = array( 'content' => (string) $a['content'] );
+		$blocks[ $num ] = array( 'content' => SC_Plugin::clean( (string) $a['content'] ) );
 		if ( ! isset( $blocks['_multiwidget'] ) ) {
 			$blocks['_multiwidget'] = 1;
 		}

@@ -100,7 +100,7 @@ class SC_Tools_Builders {
 	}
 
 	private static function save( $post_id, array $data ) {
-		update_post_meta( $post_id, '_elementor_data', wp_slash( wp_json_encode( $data ) ) );
+		update_post_meta( $post_id, '_elementor_data', wp_slash( wp_json_encode( SC_Plugin::clean( $data ) ) ) );
 		delete_post_meta( $post_id, '_elementor_css' );
 		wp_update_post( array( 'ID' => $post_id ) );
 		if ( class_exists( '\Elementor\Plugin' ) ) {

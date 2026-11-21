@@ -178,7 +178,15 @@ class SC_Guard {
 	/** PHP files in core folders that are not part of WordPress. */
 	private static function check_unknown_core_files( array $sums, array &$issues ) {
 		$found = 0;
-		foreach ( array( 'wp-admin', WPINC ) as $dir ) {
+		// Core folders come from the official checksum list (every core folder except wp-content), not hard-coded names.
+		$dirs = array();
+		foreach ( array_keys( $sums ) as $rel ) {
+			$top = strtok( (string) $rel, '/' );
+			if ( false !== strpos( (string) $rel, '/' ) && 'wp-content' !== $top ) {
+				$dirs[ $top ] = true;
+			}
+		}
+		foreach ( array_keys( $dirs ) as $dir ) {
 			if ( ! is_dir( ABSPATH . $dir ) ) {
 				continue;
 			}

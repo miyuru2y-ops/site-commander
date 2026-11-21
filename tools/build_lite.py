@@ -23,7 +23,7 @@ SLUG = 'miyuru-ai-content-assistant'
 OUT = os.path.join(OUT_DIR, SLUG)
 
 SKIP_DIRS = {'.git', '.github', 'build', 'tools', 'assets', os.path.join('includes', 'freemius')}
-SKIP_FILES = {'README.md', '.gitignore', os.path.join('includes', 'class-sc-hub.php'), os.path.join('includes', 'class-sc-license.php'), 'readme.txt', 'site-commander.php'}
+SKIP_FILES = {'README.md', '.gitignore', os.path.join('includes', 'class-sc-hub.php'), os.path.join('includes', 'class-sc-webhooks.php'), os.path.join('includes', 'class-sc-license.php'), 'readme.txt', 'site-commander.php'}
 
 LITE_CARD = '''			<div class="sc-card" id="plan">
 				<h2>3. Miyuru AI Content Assistant</h2>
@@ -133,7 +133,7 @@ def main():
 
     # Main file: new header, no Hub, no licensing.
     body = src_main.split('*/', 1)[1]
-    body = '\n'.join(l for l in body.split('\n') if 'class-sc-hub.php' not in l and 'class-sc-license.php' not in l)
+    body = '\n'.join(l for l in body.split('\n') if 'class-sc-hub.php' not in l and 'class-sc-webhooks.php' not in l and 'class-sc-license.php' not in l)
     body = body.replace("define( 'SC_VERSION'", "define( 'SC_LITE', true );\ndefine( 'SC_VERSION'", 1)
     main_php = HEADER.format(version=version) + rename(strip_pro(body, 'site-commander.php'))
     open(os.path.join(OUT, SLUG + '.php'), 'w').write(main_php)
@@ -150,7 +150,7 @@ def main():
                 continue
             p = os.path.join(dirpath, f)
             t = open(p).read()
-            for needle in ('SC_License', 'MIYURU_License', 'sc_fs', 'miyuru_fs', 'Site Commander', 'SiteCommander', 'freemius', 'Freemius', 'MIYURU_Hub', '@pro-', 'write_theme_file', 'save_code_snippet', "'install_plugin'", 'database_search_replace', 'wp_insert_user', 'kses_remove_filters', 'flush_rewrite_rules', 'external_link_ok', 'resize_large_images'):
+            for needle in ('SC_License', 'MIYURU_License', 'sc_fs', 'miyuru_fs', 'Site Commander', 'SiteCommander', 'freemius', 'Freemius', 'MIYURU_Hub', '@pro-', 'write_theme_file', 'save_code_snippet', "'install_plugin'", 'database_search_replace', 'wp_insert_user', 'kses_remove_filters', 'flush_rewrite_rules', 'external_link_ok', 'resize_large_images', 'Webhooks', "'wp-admin', ", "includes/admin.php'"):
                 if needle in t:
                     bad.append(os.path.relpath(p, OUT) + ': ' + needle)
             r = subprocess.run(['php', '-l', p], capture_output=True, text=True)

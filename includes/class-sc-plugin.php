@@ -63,7 +63,9 @@ class SC_Plugin {
 		add_action( 'rest_api_init', array( 'SC_MCP_Server', 'register_routes' ) );
 		SC_SEO_Frontend::init();
 		SC_Guard::init();
+		// @pro-start
 		SC_Webhooks::init();
+		// @pro-end
 		SC_Report::init();
 		SC_Tools_Extras::init();
 		if ( is_admin() ) {
@@ -73,10 +75,34 @@ class SC_Plugin {
 
 	public static function activate() {
 		$s = self::settings();
+		// @pro-start
 		if ( empty( $s['run_as_user'] ) ) {
 			$s['run_as_user'] = get_current_user_id();
 		}
+		// @pro-end
 		update_option( self::OPTION, $s, false );
+	}
+
+	/**
+	 * Free edition: run HTML coming from the AI through wp_kses_post() before it is
+	 * stored outside post content (widgets, page-builder data, custom fields).
+	 */
+	public static function clean( $value ) {
+		if ( ! defined( 'SC_LITE' ) ) {
+			return $value;
+		}
+		if ( is_array( $value ) ) {
+			return array_map( array( __CLASS__, 'clean' ), $value );
+		}
+		return is_string( $value ) ? wp_kses_post( $value ) : $value;
+	}
+
+	/** Who the AI may act as: an administrator in Pro, a non-administrator who can edit posts in the free edition. */
+	public static function valid_run_as( $user ) {
+		if ( defined( 'SC_LITE' ) ) {
+			return $user && user_can( $user, 'edit_posts' ) && ! user_can( $user, 'manage_options' );
+		}
+		return $user && user_can( $user, 'manage_options' );
 	}
 
 	/**

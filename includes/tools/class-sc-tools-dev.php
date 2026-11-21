@@ -449,7 +449,10 @@ class SC_Tools_Dev {
 	// @pro-end
 
 	public static function site_health() {
-		require_once ABSPATH . 'wp-admin/includes/admin.php';
+		// The Site Health tests use these admin helpers (get_plugins, get_core_updates, got_url_rewrite, get_home_path).
+		foreach ( array( 'plugin.php', 'update.php', 'misc.php', 'file.php' ) as $sc_inc ) {
+			require_once ABSPATH . 'wp-admin/includes/' . $sc_inc;
+		}
 		if ( ! class_exists( 'WP_Site_Health' ) ) {
 			require_once ABSPATH . 'wp-admin/includes/class-wp-site-health.php';
 		}

@@ -461,6 +461,7 @@ class SC_Tools_Blocks {
 		$done = array();
 		foreach ( $a['fields'] as $name => $value ) {
 			$name = sanitize_text_field( (string) $name );
+			$value = SC_Plugin::clean( $value );
 			if ( update_field( $name, $value, $target ) || get_field( $name, $target, false ) == $value ) { // phpcs:ignore WordPress.PHP.StrictComparisons
 				$done[] = $name;
 			}

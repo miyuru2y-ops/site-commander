@@ -272,6 +272,7 @@ class SC_Auth {
 
 		$user_id = (int) SC_Plugin::setting( 'run_as_user' );
 		$user    = $user_id ? get_userdata( $user_id ) : false;
+		// @pro-start
 		if ( ! $user || ! user_can( $user, 'manage_options' ) ) {
 			$admins = get_users( array( 'role' => 'administrator', 'number' => 1, 'orderby' => 'ID' ) );
 			$user   = $admins ? $admins[0] : false;
@@ -279,6 +280,8 @@ class SC_Auth {
 		if ( ! $user ) {
 			return new WP_Error( 'sc_no_user', 'No administrator account is available to act as.', array( 'status' => 403 ) );
 		}
+		// @pro-end
+		// @lite: if ( ! SC_Plugin::valid_run_as( $user ) ) { return new WP_Error( 'sc_no_user', 'The site owner has not chosen a non-administrator account (for example an Editor) for the AI to act as yet.', array( 'status' => 403 ) ); }
 		if ( defined( 'SC_LITE' ) ) {
 			add_filter( 'user_has_cap', array( __CLASS__, 'lite_caps' ), 999 );
 		}

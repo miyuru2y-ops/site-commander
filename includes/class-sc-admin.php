@@ -109,7 +109,7 @@ class SC_Admin {
 				$seo               = isset( $_POST['seo_output'] ) ? sanitize_key( wp_unslash( $_POST['seo_output'] ) ) : 'auto';
 				$new['seo_output'] = in_array( $seo, array( 'auto', 'on', 'off' ), true ) ? $seo : 'auto';
 				$uid               = isset( $_POST['run_as_user'] ) ? absint( $_POST['run_as_user'] ) : 0;
-				if ( $uid && user_can( $uid, 'manage_options' ) ) {
+				if ( $uid && SC_Plugin::valid_run_as( $uid ) ) {
 					$new['run_as_user'] = $uid;
 				}
 				SC_Plugin::update_settings( $new );
@@ -171,6 +171,7 @@ class SC_Admin {
 				self::redirect( $r['ok'] ? $r['data']['message'] : 'Undo failed: ' . $r['error'], $r['ok'] ? 'success' : 'error' );
 				break;
 
+			// @pro-start
 			case 'webhook_add':
 				// @pro-start
 				if ( ! SC_License::is_pro() ) {
@@ -197,6 +198,7 @@ class SC_Admin {
 				$r = SC_Webhooks::fire( 'test', array( 'message' => 'Test from Site Commander' ), isset( $_POST['webhook_id'] ) ? sanitize_text_field( wp_unslash( $_POST['webhook_id'] ) ) : '', true );
 				self::redirect( ! $r ? 'Webhook not found.' : ( is_wp_error( $r ) ? 'Test failed: ' . $r->get_error_message() : 'Test sent, the URL answered HTTP ' . wp_remote_retrieve_response_code( $r ) . '.' ), ( $r && ! is_wp_error( $r ) ) ? 'success' : 'error' );
 				break;
+			// @pro-end
 
 			// @pro-start
 			case 'site_add':
@@ -498,12 +500,23 @@ class SC_Admin {
 					</p>
 					<p>
 						<label><strong>AI acts as</strong>
+						<?php
+						// @pro-start
+						$sc_users = get_users( array( 'role' => 'administrator' ) );
+						// @pro-end
+						// @lite: $sc_users = array_values( array_filter( get_users( array( 'capability' => 'edit_posts' ) ), function ( $u ) { return ! user_can( $u, 'manage_options' ); } ) );
+						?>
 						<select name="run_as_user">
-							<?php foreach ( get_users( array( 'role' => 'administrator' ) ) as $u ) : ?>
+							<?php if ( defined( 'SC_LITE' ) ) : ?><option value="0">— Choose an account —</option><?php endif; ?>
+							<?php foreach ( $sc_users as $u ) : ?>
 								<option value="<?php echo (int) $u->ID; ?>" <?php selected( (int) $s['run_as_user'], $u->ID ); ?>><?php echo esc_html( $u->display_name . ' (' . $u->user_login . ')' ); ?></option>
 							<?php endforeach; ?>
 						</select></label>
-						<span class="description">Posts are authored by this administrator unless the AI picks another author.</span>
+						<?php if ( defined( 'SC_LITE' ) ) : ?>
+							<span class="description">For safety the AI never acts as an administrator. Create a user with the <strong>Editor</strong> role for it (Users → Add New) and choose that account here. Posts it writes are authored by this account.</span>
+						<?php else : ?>
+							<span class="description">Posts are authored by this administrator unless the AI picks another author.</span>
+						<?php endif; ?>
 					</p>
 					<?php submit_button( 'Save permissions' ); ?>
 				</form>
@@ -597,6 +610,7 @@ class SC_Admin {
 				<?php endif; ?>
 			</div>
 
+			<?php // @pro-start ?>
 			<?php
 			$hooks  = SC_Webhooks::all();
 			$secret = get_transient( 'sc_new_secret_' . get_current_user_id() );
@@ -648,6 +662,7 @@ class SC_Admin {
 				<?php endif; ?>
 				<?php // @pro-end ?>
 			</div>
+			<?php // @pro-end ?>
 
 			<?php // @pro-start ?>
 			<?php $sites = SC_Hub::all(); ?>

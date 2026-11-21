@@ -38,13 +38,14 @@ Miyuru AI Content Assistant never installs, activates or updates plugins and the
 * Every change is recorded in an activity log, and most changes can be undone with one click
 * An optional daily security check (off by default) compares WordPress core and WordPress.org plugin files with the official checksums and e-mails you when something changes
 
-Requests made with a key run as the user you choose on the plugin screen, but with administrator capabilities removed: the AI cannot manage plugins, themes, users or site options, and HTML it saves is filtered by WordPress like any editor's. Only give keys to assistants you trust, and revoke a key you no longer use.
+The AI never acts as an administrator: you create a user with the Editor role for it and choose that account on the plugin screen. Requests made with a key run as that user, with administrator capabilities removed, so the AI cannot manage plugins, themes, users or site options, and any HTML it saves is filtered by WordPress. Only give keys to assistants you trust, and revoke a key you no longer use.
 
 == Installation ==
 
 1. Install and activate the plugin.
-2. Go to Miyuru AI Content Assistant in the admin menu and add an AI connection.
-3. Copy the setup text for your AI tool and paste it into the assistant.
+2. Create a user with the Editor role for your AI (Users → Add New) and choose it under Settings on the plugin screen.
+3. Go to Miyuru AI Content Assistant in the admin menu and add an AI connection.
+4. Copy the setup text for your AI tool and paste it into the assistant.
 
 == Frequently Asked Questions ==
 
@@ -65,7 +66,6 @@ Any assistant that supports MCP or HTTP tools, including Claude, ChatGPT, Cursor
 The plugin calls outside services only in these cases:
 
 * The security check, only if you turn it on or run it, downloads the official checksums of WordPress core (api.wordpress.org) and of active plugins (downloads.wordpress.org) to compare with your files. No site data is sent apart from the WordPress and plugin versions in the request. https://wordpress.org/about/privacy/
-* Webhooks, if you add them, send the events you choose (for example a new form entry) to the URL you enter.
 * The speed check, broken link check and page fetch tools only request pages of your own site.
 
 == Changelog ==
